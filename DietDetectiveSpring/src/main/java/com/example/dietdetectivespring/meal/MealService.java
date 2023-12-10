@@ -20,8 +20,7 @@ public class MealService {
         return mealRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
-    public List<Meal> getMealsByCategoryId(Integer categoryId) {
-        return mealRepository.findAllByCategoryId(categoryId);
+    public List<Meal> getMealsByCategoryIds(List<Integer> categoryIds) {
+        return mealRepository.findAllByCategoryIdIn(categoryIds);
     }
-
 }

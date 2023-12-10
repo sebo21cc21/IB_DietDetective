@@ -29,10 +29,10 @@ public class MealController {
         }
     }
 
-    @GetMapping("/category/{id}")
-    public ResponseEntity<List<Meal>> getMealsByCategoryId(@PathVariable Integer id) {
+    @GetMapping("/category/{ids}")
+    public ResponseEntity<List<Meal>> getMealsByCategoryId(@PathVariable List<Integer> ids) {
         try {
-            return new ResponseEntity<>(mealService.getMealsByCategoryId(id), HttpStatus.OK);
+            return new ResponseEntity<>(mealService.getMealsByCategoryIds(ids), HttpStatus.OK);
         } catch (EntityNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

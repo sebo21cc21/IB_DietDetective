@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+app:
+  security:
+    jwt:
+      tokenSecret: ${JWT_SECRET_KEY}
+    cors:
+      allowedOrigins: https://${SERVER_IP}
+    oauth2:
+      authorizedRedirectUris:
+        - https://${SERVER_IP}/oauth2/redirect
+        - myandroidapp://oauth2/redirect
+        - myiosapp://oauth2/redirect
+  front-url: https://${SERVER_IP}

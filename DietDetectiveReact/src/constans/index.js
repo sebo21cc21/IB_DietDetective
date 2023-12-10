@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://dietdetective.live:8080';
+export const API_BASE_URL = process.env.NODE_ENV === 'production' ? 'http://dietdetective.live' : 'http://localhost:8080';
 export const ACCESS_TOKEN = 'accessToken';
 
 export const OAUTH2_REDIRECT_URI = 'http://localhost:3000/oauth2/redirect'
