@@ -1,13 +1,17 @@
 package com.example.dietdetectivespring.user;
 
-import com.example.dietdetectivespring.person.Person;
+import com.example.dietdetectivespring.eatenmeals.EatenMeal;
+import com.example.dietdetectivespring.waterintake.WaterIntake;
+import com.example.dietdetectivespring.weightrecords.WeightRecord;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.Hibernate;
 
-import java.time.LocalDateTime;
+import java.sql.Date;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -23,35 +27,40 @@ public class User {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "personid")
-    @ToString.Exclude
-    private Person person;
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
 
-    @Column(name = "username")
-    private String username;
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+
+    @Column(name = "birth_date")
+    private Date birthDate;
+
+    @Column(name = "target_weight")
+    private Float targetWeight;
+
+    @Column(name = "goal")
+    private String goal;
+
+    @Column(name = "sex")
+    private String sex;
+
+    @Column(name = "height")
+    private Integer height;
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
     @JsonIgnore
-    @Column(name = "password")
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "image_url")
-    private String imageUrl;
-
-    @Column(name = "email_verified")
-    private Boolean emailVerified = false;
-
+    @NotNull
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private AuthProvider provider;
 
-    @Column(name = "provider_id")
+    @JsonIgnore
     private String providerId;
-
-    @Column(name = "modifieddate", nullable = false)
-    private LocalDateTime modifiedDate;
 
     @Override
     public boolean equals(Object o) {
@@ -64,5 +73,13 @@ public class User {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+    public void setSurvey(UserSurveyRequest userSurveyRequest) {
+        this.birthDate = userSurveyRequest.getBirthDate();
+        this.targetWeight = userSurveyRequest.getTargetWeight();
+        this.goal = userSurveyRequest.getGoal();
+        this.sex = userSurveyRequest.getSex();
+        this.height = userSurveyRequest.getHeight();
     }
 }

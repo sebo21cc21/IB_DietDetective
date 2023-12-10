@@ -1,177 +1,77 @@
-CREATE TABLE Users
+CREATE TABLE users
 (
-    ID           SERIAL       NOT NULL,
-    PersonID     int4         NOT NULL,
-    Username     varchar(255) NOT NULL,
-    Email        varchar(255) NOT NULL,
-    Password     varchar(255) NOT NULL,
-    ModifiedDate timestamp    NOT NULL,
-    PRIMARY KEY (ID)
+    id            SERIAL PRIMARY KEY,
+    provider      varchar(255),
+    provider_id   varchar(255),
+    first_name    VARCHAR(255) NOT NULL,
+    last_name     VARCHAR(255) NOT NULL,
+    birth_date    DATE,
+    height        INT,
+    sex           VARCHAR(10),
+    target_weight FLOAT,
+    goal          VARCHAR(255),
+    email         VARCHAR(255) NOT NULL UNIQUE,
+    password      VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE Countries
+
+CREATE TABLE meals
 (
-    ID   SERIAL       NOT NULL,
-    Name varchar(255) NOT NULL UNIQUE,
-    PRIMARY KEY (ID)
+    id                SERIAL PRIMARY KEY,
+    name              VARCHAR(255) NOT NULL,
+    image             VARCHAR(255),
+    unit              VARCHAR(255),
+    calories          INT,
+    proteins          FLOAT,
+    carbohydrates     FLOAT,
+    fats              FLOAT,
+    preparation_time  INT,
+    long_description  TEXT,
+    short_description VARCHAR(255)
 );
 
-CREATE TABLE Preferences
+
+CREATE TABLE water_intake
 (
-    ID   SERIAL       NOT NULL,
-    Name varchar(255) NOT NULL UNIQUE,
-    PRIMARY KEY (ID)
+    id      SERIAL PRIMARY KEY,
+    date    DATE  NOT NULL,
+    volume  FLOAT NOT NULL,
+    user_id INT   NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-CREATE TABLE FitnessPlans
+CREATE TABLE weight_records
 (
-    ID                     SERIAL    NOT NULL,
-    PersonID               int4      NOT NULL,
-    DailyLimitOfCalories   int4,
-    WeeklyLimitOfCalories  int4,
-    MonthlyLimitOfCalories int4,
-    DailyAmountOfWater     int4,
-    StartDate              timestamp      NOT NULL,
-    EndDate                timestamp,
-    ModifiedDate           timestamp NOT NULL,
-    PRIMARY KEY (ID)
+    id      SERIAL PRIMARY KEY,
+    date    DATE  NOT NULL,
+    weight  FLOAT NOT NULL,
+    user_id INT   NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-CREATE TABLE Persons
+CREATE TABLE categories
 (
-    ID           SERIAL       NOT NULL,
-    CountryID    int4,
-    Name         varchar(255) NOT NULL,
-    Surname      varchar(255) NOT NULL,
-    DateOfBirth  date,
-    Gender       varchar(1),
-    Height       int4,
-    Weight       int4,
-    ModifiedDate timestamp    NOT NULL,
-    PRIMARY KEY (ID)
+    id   SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE
 );
 
-CREATE TABLE Meals
+
+CREATE TABLE eaten_meals
 (
-    ID                SERIAL       NOT NULL,
-    MealSubcategoryID int4         NOT NULL,
-    Name              varchar(255) NOT NULL,
-    PreparationTime   int4,
-    DifficultyLevelID int4         NOT NULL,
-    ModifiedDate      timestamp    NOT NULL,
-    PRIMARY KEY (ID)
+    id      SERIAL PRIMARY KEY,
+    date    DATE NOT NULL,
+    user_id INT       NOT NULL,
+    meal_id INT       NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (meal_id) REFERENCES meals (id)
 );
 
-CREATE TABLE DifficultyLevels
+CREATE TABLE categories_meals
 (
-    ID   SERIAL      NOT NULL,
-    Name varchar(50) NOT NULL UNIQUE,
-    PRIMARY KEY (ID)
+    id          SERIAL PRIMARY KEY,
+    category_id INT NOT NULL,
+    meal_id     INT NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES categories (id),
+    FOREIGN KEY (meal_id) REFERENCES meals (id)
 );
 
-CREATE TABLE RecipeSteps
-(
-    ID           SERIAL    NOT NULL,
-    MealID       int4      NOT NULL,
-    Description  varchar(255),
-    ModifiedDate timestamp NOT NULL,
-    PRIMARY KEY (ID)
-);
-
-CREATE TABLE Ingredients
-(
-    ID                    SERIAL       NOT NULL,
-    IngredientCharacterID int4         NOT NULL,
-    Name                  varchar(255) NOT NULL,
-    Unit                  varchar(5)   NOT NULL,
-    AmountOfCalories      int4         NOT NULL,
-    AmountOfCarbohydrates int4         NOT NULL,
-    AmountOfProteins      int4         NOT NULL,
-    AmountOfFats          int4         NOT NULL,
-    PRIMARY KEY (ID)
-);
-
-CREATE TABLE MealSubcategories
-(
-    ID             SERIAL       NOT NULL,
-    MealCategoryID int4         NOT NULL,
-    Name           varchar(255) NOT NULL UNIQUE,
-    PRIMARY KEY (ID)
-);
-
-CREATE TABLE IngredientCharacters
-(
-    ID   SERIAL      NOT NULL,
-    Name varchar(50) NOT NULL UNIQUE,
-    PRIMARY KEY (ID)
-);
-
-CREATE TABLE MealCategories
-(
-    ID   SERIAL      NOT NULL,
-    Name varchar(50) NOT NULL UNIQUE,
-    PRIMARY KEY (ID)
-);
-
-CREATE TABLE Persons_Preferences
-(
-    PersonID     int4 NOT NULL,
-    PreferenceID int4 NOT NULL,
-    PRIMARY KEY (PersonID, PreferenceID)
-);
-
-CREATE TABLE Preferences_Meals
-(
-    PreferenceID int4 NOT NULL,
-    MealID       int4 NOT NULL,
-    PRIMARY KEY (PreferenceID, MealID)
-);
-
-CREATE TABLE Persons_Meals
-(
-    PersonID    int4      NOT NULL,
-    MealID      int4      NOT NULL,
-    ConsumeDate timestamp NOT NULL,
-    PRIMARY KEY (PersonID, MealID)
-);
-
-CREATE TABLE Meals_Ingredients
-(
-    MealID       int4 NOT NULL,
-    IngredientID int4 NOT NULL,
-    Amount       int4 NOT NULL,
-    PRIMARY KEY (MealID, IngredientID)
-);
-
-ALTER TABLE Users
-    ADD CONSTRAINT FKUser394858 FOREIGN KEY (PersonID) REFERENCES Persons (ID);
-ALTER TABLE Persons
-    ADD CONSTRAINT FKPerson710664 FOREIGN KEY (CountryID) REFERENCES Countries (ID);
-ALTER TABLE FitnessPlans
-    ADD CONSTRAINT FKFitnessPla230086 FOREIGN KEY (PersonID) REFERENCES Persons (ID);
-ALTER TABLE RecipeSteps
-    ADD CONSTRAINT FKRecipeStep902471 FOREIGN KEY (MealID) REFERENCES Meals (ID);
-ALTER TABLE Persons_Preferences
-    ADD CONSTRAINT FKPerson_Pre906692 FOREIGN KEY (PersonID) REFERENCES Persons (ID);
-ALTER TABLE Persons_Preferences
-    ADD CONSTRAINT FKPerson_Pre85200 FOREIGN KEY (PreferenceID) REFERENCES Preferences (ID);
-ALTER TABLE Meals
-    ADD CONSTRAINT FKMeal269812 FOREIGN KEY (MealSubcategoryID) REFERENCES MealSubcategories (ID);
-ALTER TABLE Meals
-    ADD CONSTRAINT FKMeal269817 FOREIGN KEY (DifficultyLevelID) REFERENCES DifficultyLevels (ID);
-ALTER TABLE MealSubcategories
-    ADD CONSTRAINT FKMealSubcat847758 FOREIGN KEY (MealCategoryID) REFERENCES MealCategories (ID);
-ALTER TABLE Preferences_Meals
-    ADD CONSTRAINT FKPreference24141 FOREIGN KEY (PreferenceID) REFERENCES Preferences (ID);
-ALTER TABLE Preferences_Meals
-    ADD CONSTRAINT FKPreference29710 FOREIGN KEY (MealID) REFERENCES Meals (ID);
-ALTER TABLE Persons_Meals
-    ADD CONSTRAINT FKPerson_Mea912081 FOREIGN KEY (PersonID) REFERENCES Persons (ID);
-ALTER TABLE Persons_Meals
-    ADD CONSTRAINT FKPerson_Mea728005 FOREIGN KEY (MealID) REFERENCES Meals (ID);
-ALTER TABLE Meals_Ingredients
-    ADD CONSTRAINT FKMeal_Ingre184018 FOREIGN KEY (MealID) REFERENCES Meals (ID);
-ALTER TABLE Meals_Ingredients
-    ADD CONSTRAINT FKMeal_Ingre723244 FOREIGN KEY (IngredientID) REFERENCES Ingredients (ID);
-ALTER TABLE Ingredients
-    ADD CONSTRAINT FKIngredient478352 FOREIGN KEY (IngredientCharacterID) REFERENCES IngredientCharacters (ID);

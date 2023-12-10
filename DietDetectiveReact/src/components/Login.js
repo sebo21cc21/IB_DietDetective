@@ -1,31 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import { Flex, Spacer, Text, Button, HStack } from '@chakra-ui/react';
-import { FaUser } from 'react-icons/fa';
-import axios from 'axios';
+import React, {useContext} from 'react';
+import {Button, Flex, HStack, Spacer, Text} from '@chakra-ui/react';
+import {FaUser} from 'react-icons/fa';
+import AuthContext from "../context/AuthProvider";
+import {ACCESS_TOKEN} from "../constans";
+import {Link, useNavigate} from "react-router-dom";
+
 export default function Login() {
-  const [userData, setUserData] = useState(null);
+    const navigate = useNavigate();
+    const {auth, setAuth} = useContext(AuthContext);
+    console.log(auth)
+    const logout = () => {
+        setAuth({
+            isAuthenticated: false,
+            currentUser: null,
+            isInterviewCompleted: false
+        });
+        localStorage.removeItem(ACCESS_TOKEN);
+        navigate('/login');
+    }
 
-  //Person
-  useEffect(() => {
-    axios.get('http://localhost:8080/person?limit=1')
-      .then(response => {
-        const sortedPerson = response.data.sort((a, b) => b.id - a.id);
-        const lastPerson = sortedPerson.slice(0, 1);
-        setUserData(lastPerson[0]);
-      })
-      .catch(error => console.error(error));
-  }, []);
+    return (
 
-  return (
-    
-    <Flex as= "nav" alginItems="center" color={"white"}>
-      <Spacer />
-      <HStack spacing="20px">
-        <FaUser size={20}/>
-        <Text >Witaj, {userData && userData.name} {userData && userData.surname}!</Text>
-        <Button colorScheme="messenger">Logout</Button>
-      </HStack>
-    </Flex> 
-  )
+        (auth.isAuthenticated) ? (
+                <Flex as="nav" alignItems="center" color={"white"}>
+                    <Spacer/>
+                    <HStack spacing="20px">
+                        <FaUser size={20}/>
+                        <Text>Witaj, {auth.currentUser.firstName}!</Text>
+                        <Button colorScheme="messenger" onClick={logout}>Wyloguj</Button>
+                    </HStack>
+                </Flex>
+            )
+            : (
+                <Flex as="nav" alignItems="center" color={"white"}>
+                    <Spacer/>
+                    <HStack spacing="20px">
+                        <Link to="/login">
+                            <Button colorScheme="messenger">Zaloguj</Button>
+                        </Link>
+                    </HStack>
+                </Flex>
+            )
+
+    )
 }
  

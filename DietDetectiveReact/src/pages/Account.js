@@ -1,19 +1,16 @@
-import { CircularProgress, CircularProgressLabel, Container, Flex, Heading } from '@chakra-ui/react';
-import React, { useEffect, useState } from 'react';
+import {
+  Button,
+  Container,
+  Flex,
+  Input,
+  Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
+  ModalOverlay
+} from '@chakra-ui/react'
+import React, { useEffect, useState } from 'react'
 import { Box, SimpleGrid, Text, Image } from '@chakra-ui/react';
-import axios from 'axios';
-
-export function determineGoal(weight, estimatedWeight) {
-  if (weight > estimatedWeight) {
-    return "Zrzucenie wagi";
-  } else if (weight < estimatedWeight) {
-    return "Masa";
-  } else {
-    return "Utrzymanie";
-  }
-}
-
+import {getCurrentUser, getUserWeight, handleGoal, handleSetTargetWeight, handleSetWeight} from '../util/APIUtils';
 export function calculateBMR(gender, weight, height, age) {
+  console.log(gender,weight,height,age)
   let BMR = 0;
 
   if (gender === 'M' || gender === 'Mężczyzna' || gender === 'Mezczyzna' || gender === 'Chlopak'){
@@ -21,197 +18,202 @@ export function calculateBMR(gender, weight, height, age) {
   } else if (gender === 'K' || gender === 'D' || gender === 'Kobieta' || gender === 'Dziewczyna'){
     BMR = Math.floor(655 + (9.6 * weight) + (1.8 * height) - (4.7 * age));
   }
-  
+
   return BMR;
 }
-
+export function determineGoal(weight, estimatedWeight) {
+  if (weight > estimatedWeight) {
+    return "Zrzuć wagę";
+  } else if (weight < estimatedWeight) {
+    return "Nabierz masę";
+  } else {
+    return "Utrzymaj wagę";
+  }
+}
 export function calculateAge(dateOfBirth) {
   const birthDate = new Date(dateOfBirth);
   const currentDate = new Date();
-  const age = currentDate.getFullYear() - birthDate.getFullYear();
-  return age;
+  return currentDate.getFullYear() - birthDate.getFullYear();
 }
 
-export function calculatePercentWeight(weight, estimatedWeight) {
-  const percentWeight = (weight / estimatedWeight) * 100;
-  return Math.floor(percentWeight);
-}
-
-export function calculateTimeSinceRegistration(registrationDate) {
-  const currentDate = new Date();
-  const modifiedDate = new Date(registrationDate);
-  const timeDifference = currentDate - modifiedDate;
-  const hours = Math.floor(timeDifference / (1000 * 60 * 60));
-  const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-  return hours + " godzin " + minutes + " minut";
-}
 export default function Account() {
+  const [user, setUser] = useState(null);
+  const [weight, setWeight] = useState({weight: null});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newWeight, setNewWeight] = useState('');
+  const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
+  const [newTargetWeight, setNewTargetWeight] = useState('');
+  const [goal, setGoal] = useState(null);
   const FirstBox = {
-    h: "100px",
-    color: "white",
-    borderRadius: "lg",
-    p: "20px",
-    textAlign: "center"
-  };
-  const SecondBox = {
     h: "200px",
     color: "white",
     borderRadius: "lg",
-    p: "20px",
-    textAlign: "left"
-  };
-  const ThirdBox = {
-    bgGradient: "linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))",
-    h: "250px",
-    color: "white",
-    borderRadius: "lg",
-    p: "20px",
-    mx: "150px",
+    p: "75px",
     textAlign: "center"
-  };
-  const miniBox = {
-    h: "60px",
-    color: "white",
-    w: "110%",
-    borderRadius: "lg",
-    p: "5px",
-    mt: "5px",
-    ml: "80%"
-  };
-  const miniBox2 = {
-    h: "60px",
-    w: "150%",
+  }
+
+  const SecondBox = {
+    h: "300px",
     color: "white",
     borderRadius: "lg",
-    p: "5px",
-    mt: "5px",
-    ml: "40%"
+    p: "80px",
+    textAlign: "center"
+  }
+  const ThirdBox = {
+    h: "300px",
+    color: "white",
+    borderRadius: "lg",
+    p: "40px",
+    textAlign: "left"
+  }
+
+
+
+  const fetchUserData = () => {
+    getCurrentUser()
+        .then(response => {
+          setUser(response.data);
+          console.log(response.data);
+        })
+        .catch(error => {
+          console.error('Błąd podczas pobierania danych użytkownika', error);
+        });
   };
 
-  const [userData, setUserData] = useState(null);
 
+  const fetchUserWeight = () => {
+    getUserWeight()
+        .then(response => {
+          setWeight(response.data[0]);
+          console.log(response.data[0]);
+        })
+        .catch(error => {
+          console.error('Błąd podczas pobierania danych użytkownika', error);
+        });
+  };
+  const handleWeightChange = async () => {
+    let weightRequest = {
+      weight: newWeight
+    };
+    console.log(weightRequest);
+    await handleSetWeight(weightRequest);
+    console.log(goal);
+    setWeight({ weight: newWeight });
+    await handleGoal({goal: determineGoal(newWeight, newTargetWeight)});
+    setIsModalOpen(false);
+  };
   useEffect(() => {
-    axios.get('http://localhost:8080/person?limit=1')
-      .then(response => {
-        const sortedPerson = response.data.sort((a, b) => b.id - a.id);
-        const lastPerson = sortedPerson.slice(0, 1);
-        setUserData(lastPerson[0]);
-      })
-      .catch(error => console.error(error));
+    fetchUserData();
+    fetchUserWeight();
   }, []);
 
-  const age = calculateAge(userData && userData.dateOfBirth);
-  const percentWeight = calculatePercentWeight(userData && userData.weight, userData && userData.estimated_weight);
-  const BMR = calculateBMR(userData && userData.gender, userData && userData.weight, userData && userData.height, age);
-  const timeSinceRegistration = calculateTimeSinceRegistration(userData && userData.modifiedDate);
-  const goal = determineGoal(userData && userData.weight, userData && userData.estimated_weight);
+  const handleTargetWeightChange = async () => {
+    let requestBody = {
+      targetWeight: newTargetWeight
+    };
+    console.log(requestBody);
+    setUser(prevUser => ({ ...prevUser, targetWeight: newTargetWeight }));
+    await handleGoal({goal: determineGoal(newWeight, newTargetWeight)});
+    await handleSetTargetWeight(requestBody);
+    setIsTargetModalOpen(false);
+  };
+
   return (
-    <Box>
-      <Container as="section" maxWidth={"1x1"} py="10px">
-        <SimpleGrid spacing={10} minChildWidth="250px">
-          <Box sx={FirstBox} bgImage="url('img/account.png')" backgroundSize='cover'>
-            <Text fontSize="xl" fontWeight="bold">Zapotrzebowanie</Text>
-            <Text>{BMR} kcal</Text>
-          </Box>
-        </SimpleGrid>
-      </Container>
+      <div className="App">
+        <Container as="section" maxWidth={"1x1"} py="10px">
+          <SimpleGrid spacing={10} minChildWidth="250px">
+            <Box sx={FirstBox} bgImage="url('img/account.png')" backgroundSize='cover'>
+              <Text fontSize="xl" fontWeight="bold">Zapotrzebowanie</Text>
+              <Text>{user ? `${calculateBMR(user.sex, weight.weight, user.height, calculateAge(user.birthDate))} kcal` : ''}</Text>
+            </Box>
+          </SimpleGrid>
+        </Container>
 
-      <Container as="section" maxWidth={"2x1"} py="10px">
-        <SimpleGrid spacing={10} minChildWidth="10px">
-          <Box sx={SecondBox} bgImage="url('img/account2.png')" backgroundSize='cover'>
-            <Text>
-              Witaj ponownie!<br />
-              <Heading size='lg'>{userData && userData.name} {userData && userData.surname}</Heading>
-              <span style={{ color: "#A0AEC0" }}>Miło Cię znów widzieć!<br />
+        <Container as="section" maxWidth={"2x1"} py="20px">
+          <SimpleGrid spacing={10} minChildWidth="10px">
+            <Box sx={SecondBox} bgImage="url('img/account2.png')" backgroundSize='cover'>
+
+                <Text fontSize="xx-large" fontWeight="bold">{user ? `${user.firstName} ${user.lastName}` : ''}</Text>
+
+                <Text>
+                  <span style={{ color: "#A0AEC0" }}>Miło Cię znów widzieć!<br />
                 Czy masz jakieś pytania?</span>
-            </Text>
-          </Box>
+                </Text>
 
-          <Box sx={SecondBox} width="200%" bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
-            <Text fontSize="xl" fontWeight="bold">Informator o profilu</Text>
-            <Flex justifyContent={"center"}>
-              <Box letterSpacing='wide' mt='3'>
-                <Text>Imię: {userData && userData.name}</Text>
-                <Text>Nazwisko: {userData && userData.surname}</Text>
-                <Text>Data urodzenia: {userData && userData.dateOfBirth}</Text>
-                <Text>Wzrost: {userData && userData.height} cm</Text>
-              </Box>
-              <Box letterSpacing='wide' ml='10' mt='3'>
-                <Text>Waga: {userData && userData.weight} kg</Text>
-                <Text>Waga docelowa: {userData && userData.estimated_weight} kg</Text>
-                <Text>Cel: {goal}</Text>
-              </Box>
-            </Flex>
-          </Box>
-          <Box></Box>
-        </SimpleGrid>
-      </Container>
+            </Box>
 
-      <Container as="section" maxWidth={"1x1"} py="10px">
-        <SimpleGrid spacing={10} minChildWidth="250px">
-          <Box sx={ThirdBox}>
-            <Text fontSize="xl" fontWeight="bold">Informator zdrowia</Text>
-            <Flex justifyContent={"flex-start"}>
-              <Box>
-                <CircularProgress color='green.300' size='150px' thickness='14px' value={86}>
-                  <CircularProgressLabel>86%</CircularProgressLabel>
-                </CircularProgress>
-                <Text>{timeSinceRegistration}</Text>
-                <Text>Czas od rejestracji</Text>
-              </Box>
+            <Box sx={ThirdBox} width="200%" bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
+              <Text fontSize="xl" fontWeight="bold">Informator o profilu</Text>
               <Flex justifyContent={"center"}>
-                <Box>
-
-                  <Box sx={miniBox2} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
-                    <Flex justifyContent={"space-between"}>
-                      <Box>
-                        <Text fontSize="md" ml="10px"><span style={{ color: "#A0AEC0" }}>Cel</span></Text>
-                        <Text fontSize="md" fontWeight="bold" ml="15px">76%</Text>
-                      </Box>
-                      <Image src="img/Line2.png" backgroundSize='cover'></Image>
-                    </Flex>
-                  </Box>
-
-                  <Box sx={miniBox2} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
-                    <Flex justifyContent={"space-between"}>
-                      <Box>
-                        <Text fontSize="md" ml="10px"><span style={{ color: "#A0AEC0" }}>Waga</span></Text>
-                        <Text fontSize="md" fontWeight="bold" ml="15px">{Math.floor(percentWeight)}%</Text>
-                      </Box>
-                      <Image src="img/Line3.png" backgroundSize='cover'></Image>
-                    </Flex>
-                  </Box>
-
-
+                <Box letterSpacing='wide' mt='8'>
+                  <Text fontSize="xl">Imię i nazwisko: {user ? `${user.firstName} ${user.lastName}` : ''}</Text>
+                  <Text fontSize="xl">Email: {user ? user.email : ''}</Text>
+                  <Text fontSize="xl">
+                    {user && weight ? determineGoal(weight.weight, user.targetWeight) : ''}
+                  </Text>
+                  <Text fontSize="xl">Płeć: {user ? user.sex : ''}</Text>
                 </Box>
 
-                <Box>
-
-                  <Box sx={miniBox} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
-                    <Flex justifyContent={"space-between"}>
-                      <Box>
-                        <Text fontSize="md" ml="10px"><span style={{ color: "#A0AEC0" }}>Progres</span></Text>
-                        <Text fontSize="md" fontWeight="bold" ml="15px">+26%</Text>
-                      </Box>
-                      <Image src="img/Line4.png" backgroundSize='cover'></Image>
-                    </Flex>
-                  </Box>
-
-                  <Box sx={miniBox} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
-                    <Flex justifyContent={"space-between"}>
-                      <Box>
-                        <Text fontSize="md" ml="10px"><span style={{ color: "#A0AEC0" }}>Zapotrzebowanie</span></Text>
-                        <Text fontSize="md" fontWeight="bold" ml="15px"> {BMR} kcal</Text>
-                      </Box>
-                      <Image src="img/Line3.png" backgroundSize='cover'></Image>
-                    </Flex>
-                  </Box>
+                <Box letterSpacing='wide' ml='10' mt='8'>
+                  <Text fontSize="xl">Wiek: {user ? calculateAge(user.birthDate) : ''} lata</Text>
+                  <Text fontSize="xl">Wzrost {user ? user.height : ''} cm:</Text>
+                  <Text fontSize="xl">Waga: {weight ? weight.weight : ''} kg</Text>
+                  <Text fontSize="xl">Waga docelowa: {user ? user.targetWeight : ''} kg</Text>
                 </Box>
+                <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} isCentered>
+                  <ModalOverlay />
+                  <ModalContent mx="auto" my="auto" style={{ transform: 'translate(-50%, -50%)' }}>
+                    <ModalHeader>Zmień swoją wagę</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                      <Input
+                          placeholder="Wprowadź nową wagę w kg"
+                          value={newWeight}
+                          type={"number"}
+                          onChange={(e) => setNewWeight(e.target.value)}
+                      />
+                    </ModalBody>
+
+                    <ModalFooter>
+                      <Button colorScheme="blue" mr={3} onClick={handleWeightChange}>
+                        Zapisz
+                      </Button>
+                      <Button variant="ghost" onClick={() => setIsModalOpen(false)}>Anuluj</Button>
+                    </ModalFooter>
+                  </ModalContent>
+                </Modal>
+
+                <Modal isOpen={isTargetModalOpen} onClose={() => setIsTargetModalOpen(false)} isCentered>
+                  <ModalOverlay />
+                  <ModalContent mx="auto" my="auto" style={{ transform: 'translate(-50%, -50%)' }}>
+                    <ModalHeader>Zmień wagę docelową</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                      <Input
+                          placeholder="Wprowadź nową wagę docelową w kg"
+                          type={"number"}
+                          value={newTargetWeight}
+                          onChange={(e) => setNewTargetWeight(e.target.value)}
+                      />
+                    </ModalBody>
+
+                    <ModalFooter>
+                      <Button colorScheme="green" mr={3} onClick={handleTargetWeightChange}>
+                        Zapisz
+                      </Button>
+                      <Button variant="ghost" onClick={() => setIsTargetModalOpen(false)}>Anuluj</Button>
+                    </ModalFooter>
+                  </ModalContent>
+                </Modal>
               </Flex>
-            </Flex>
-          </Box>
-        </SimpleGrid>
-      </Container>
-    </Box>
+              <Flex justifyContent={"center"} mt={5} >
+                <Button mr={3} colorScheme="messenger" onClick={() => setIsModalOpen(true)}>Zmień wagę</Button>
+                <Button colorScheme="teal" onClick={() => setIsTargetModalOpen(true)}>Zmień wagę docelową</Button>
+              </Flex>
+              </Box>
+            <Box></Box>
+          </SimpleGrid>
+        </Container>
+      </div>
   )
 }

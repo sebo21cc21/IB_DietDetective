@@ -1,70 +1,150 @@
-import React from 'react';
-import { Box, Heading, FormControl, FormLabel, Input, Button, Text, Switch, Link as ChakraLink } from '@chakra-ui/react';
+import React, { useContext } from 'react';
+import {
+    Box,
+    Heading,
+    FormControl,
+    FormLabel,
+    Input,
+    Button,
+    Text,
+    Link as ChakraLink,
+    Alert,
+    AlertIcon,
+    AlertDescription,
+} from '@chakra-ui/react';
 import { NavLink } from 'react-router-dom';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { ACCESS_TOKEN } from '../constans';
+import {login} from '../util/APIUtils';
+import { useNavigate } from 'react-router-dom';
+import AuthContext from '../context/AuthProvider';
 
 const formContainerStyles = {
-  maxW: "md",
-  mx: "auto",
-  mt: 6,
-  p: 10,
-  borderWidth: 1,
-  borderRadius: "md",
-  boxShadow: "md",
-  bgGradient: "linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.8))"
+    maxW: 'md',
+    mx: 'auto',
+    mt: 6,
+    p: 10,
+    borderWidth: 1,
+    borderRadius: 'md',
+    boxShadow: 'md',
+    bgGradient: 'linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.8))',
 };
 
 const headingStyles = {
-  size: "lg",
-  textAlign: "center",
-  mb: 4,
-  color: "white",
+    size: 'lg',
+    textAlign: 'center',
+    mb: 4,
+    color: 'white',
 };
 
 const textStyles = {
-  color: "gray.500",
-  mb: 2,
+    color: 'gray.500',
+    mb: 2,
 };
 
 const formLabelStyles = {
-  color: "white",
+    color: 'white',
 };
 
 const linkStyles = {
-  color: "blue.500",
+    color: 'blue.500',
 };
 
 export default function Login() {
-  return (
-    <Box sx={formContainerStyles}>
-      <Heading sx={headingStyles}>Miło Cię znów widzieć!</Heading>
+    const { setAuth } = useContext(AuthContext);
+    const navigate = useNavigate();
 
-      <Text sx={textStyles}>Wprowadź Email oraz hasło, aby się zalogować</Text>
+    const validationSchema = Yup.object().shape({
+        email: Yup.string().required('Email jest wymagany').email('Nieprawidłowy format email'),
+        password: Yup.string()
+            .required('Hasło jest wymagane')
+            .min(8, 'Hasło musi mieć co najmniej 8 znaków')
+            .matches(/(?=.*[!@#$%^&*])/, 'Hasło musi zawierać co najmniej jeden znak specjalny (!@#$%^&*)'),
+    });
 
-      <FormControl id="email" mb={4}>
-        <FormLabel sx={formLabelStyles}>Email</FormLabel>
-        <Input color = "white" type="email" placeholder="Wprowadź Email" />
-      </FormControl>
+    const formik = useFormik({
+        initialValues: {
+            email: '',
+            password: '',
+        },
+        validationSchema,
+        onSubmit: (values, { setSubmitting, setErrors }) => {
+            login(values)
+                .then((response) => {
 
-      <FormControl id="password" mb={4}>
-        <FormLabel sx={formLabelStyles}>Hasło</FormLabel>
-        <Input color = "white" type="password" placeholder="Wprowadź hasło" />
-      </FormControl>
+                    localStorage.setItem(ACCESS_TOKEN, response.token);
+                    setAuth({
+                        isAuthenticated: true,
+                        currentUser: response,
+                        isInterviewCompleted: response.interviewCompleted
+                    });
+                    navigate('/monitor');
+                })
+                .catch((error) => {
+                    setSubmitting(false);
+                    setErrors({ login: 'Nieprawidłowy email lub hasło' }); // Ustawienie błędu niestandardowego
+                });
+        },
+    });
 
-      <FormControl display="flex" alignItems="center" mb={4}>
-        <Switch id="rememberMe" colorScheme="blue" />
-        <FormLabel htmlFor="rememberMe" mb={0} ml={2}>
-          <Text sx={formLabelStyles}>Pamiętaj mnie</Text>
-        </FormLabel>
-      </FormControl>
+    return (
+        <Box sx={formContainerStyles}>
+            <Heading sx={headingStyles}>Miło Cię znów widzieć!</Heading>
 
-      <Button colorScheme="messenger" size="md" w="full" md="2">Zaloguj się</Button>
+            <Text sx={textStyles}>Wprowadź Email oraz hasło, aby się zalogować</Text>
+            <form onSubmit={formik.handleSubmit}>
+                <FormControl id="email" mb={4} isInvalid={formik.touched.email && formik.errors.email}>
+                    <FormLabel sx={formLabelStyles}>Email</FormLabel>
+                    <Input
+                        color="white"
+                        type="email"
+                        name="email"
+                        placeholder="Wprowadź Email"
+                        value={formik.values.email}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.email && formik.errors.email && (
+                        <Alert status="error" variant="subtle" mt={1}>
+                            <AlertIcon />
+                            <AlertDescription>{formik.errors.email}</AlertDescription>
+                        </Alert>
+                    )}
+                </FormControl>
 
-      <Text textAlign="center" color= "gray.500">
-        Nie masz konta?{' '}
-        <ChakraLink as={NavLink} to="/register" sx={linkStyles}>
-          Zarejestruj się
-        </ChakraLink>
-      </Text>
-    </Box>
-  );
+                <FormControl id="password" mb={4} isInvalid={formik.touched.password && formik.errors.password}>
+                    <FormLabel sx={formLabelStyles}>Hasło</FormLabel>
+                    <Input
+                        color="white"
+                        type="password"
+                        name="password"
+                        placeholder="Wprowadź hasło"
+                        value={formik.values.password}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.password && formik.errors.password && (
+                        <Alert status="error" variant="subtle" mt={1}>
+                            <AlertIcon />
+                            <AlertDescription>{formik.errors.password}</AlertDescription>
+                        </Alert>
+                    )}
+                </FormControl>
+
+
+
+                <Button type="submit" colorScheme="messenger" size="md" w="full" md="2" isLoading={formik.isSubmitting}>
+                    Zaloguj się
+                </Button>
+            </form>
+
+            <Text textAlign="center" color="gray.500">
+                Nie masz konta?{' '}
+                <ChakraLink as={NavLink} to="/register" sx={linkStyles}>
+                    Zarejestruj się
+                </ChakraLink>
+            </Text>
+        </Box>
+    );
 }

@@ -1,11 +1,14 @@
 package com.example.dietdetectivespring.user;
 
+import com.example.dietdetectivespring.security.UserPrincipal;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/users")
@@ -17,45 +20,54 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
-        User user = userService.getUserById(id);
-        if (user != null) {
-            return ResponseEntity.ok(user);
-        } else {
-            return ResponseEntity.notFound().build();
+    @GetMapping("/me")
+    public ResponseEntity<User> getUser(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        try {
+            return ResponseEntity.ok(userService.getUserByEmail(userPrincipal.getEmail()));
+        } catch (BadCredentialsException | EntityNotFoundException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Bad credentials", e);
         }
     }
 
-    @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
-    }
-
-    @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User createdUser = userService.createUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User user) {
-        User updatedUser = userService.updateUser(id, user);
-        if (updatedUser != null) {
-            return ResponseEntity.ok(updatedUser);
-        } else {
-            return ResponseEntity.notFound().build();
+    @PutMapping("/goal")
+    public ResponseEntity<User> updateUserGoal(@RequestBody UserGoalRequest userGoalRequest, @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        try {
+            return ResponseEntity.ok(userService.updateUserGoal(userGoalRequest, userPrincipal.getEmail()));
+        } catch (EntityNotFoundException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Bad credentials", e);
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
-        boolean deleted = userService.deleteUser(id);
-        if (deleted) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
+    @PostMapping("/target")
+    public ResponseEntity<User> updateUserTarget(@RequestBody UserTargetRequest userTargetRequest, @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        try {
+            return ResponseEntity.ok(userService.updateUserTarget(userTargetRequest, userPrincipal.getEmail()));
+        } catch (EntityNotFoundException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Bad credentials", e);
         }
     }
+
+    @PostMapping("/survey")
+    public ResponseEntity<User> updateUserSurvey(@RequestBody UserSurveyRequest userSurveyRequest, @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        try {
+            return ResponseEntity.ok(userService.updateUserSurvey(userSurveyRequest, userPrincipal.getEmail()));
+        } catch (EntityNotFoundException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Bad credentials", e);
+        }
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<UserSummaryResponse> getUserMonitor(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        try {
+            return ResponseEntity.ok(userService.getUserStats(userPrincipal.getEmail()));
+        } catch (EntityNotFoundException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "Entity not found", e);
+        }
+    }
+
 }

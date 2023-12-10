@@ -1,49 +1,73 @@
 package com.example.dietdetectivespring.user;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.dietdetectivespring.eatenmeals.EatenMealsService;
+import com.example.dietdetectivespring.utils.BMRCalculator;
+import com.example.dietdetectivespring.waterintake.WaterIntakeService;
+import com.example.dietdetectivespring.weightrecords.WeightRecord;
+import com.example.dietdetectivespring.weightrecords.WeightRecordRequest;
+import com.example.dietdetectivespring.weightrecords.WeightRecordService;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import static com.example.dietdetectivespring.utils.Constants.WATER_DEMAND;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final WeightRecordService weightRecordService;
+    private final WaterIntakeService waterIntakeService;
+    private final EatenMealsService eatenMealsService;
 
-    @Autowired
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new);
     }
 
-    public User getUserById(Integer id) {
-        return userRepository.findById(id).orElse(null);
-    }
-
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    public User createUser(User user) {
+    public User updateUserGoal(UserGoalRequest userGoalRequest, String email) {
+        User user = getUserByEmail(email);
+        user.setGoal(userGoalRequest.getGoal());
         return userRepository.save(user);
     }
 
-    public User updateUser(Integer id, User updatedUser) {
-        User existingUser = userRepository.findById(id).orElse(null);
-        if (existingUser != null) {
-            existingUser.setUsername(updatedUser.getUsername());
-            existingUser.setEmail(updatedUser.getEmail());
-            existingUser.setPassword(updatedUser.getPassword());
-            // Update other fields as needed
-
-            return userRepository.save(existingUser);
-        }
-        return null;
+    public User updateUserTarget(UserTargetRequest userTargetRequest, String email) {
+        User user = getUserByEmail(email);
+        user.setTargetWeight(userTargetRequest.getTargetWeight());
+        return userRepository.save(user);
     }
 
-    public boolean deleteUser(Integer id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-            return true;
-        }
-        return false;
+    public User updateUserSurvey(UserSurveyRequest userSurveyRequest, String email) {
+        User user = getUserByEmail(email);
+        user.setSurvey(userSurveyRequest);
+        weightRecordService.addWeightRecord(new WeightRecordRequest(userSurveyRequest.getWeight()), email);
+        return userRepository.save(user);
     }
+
+    public int getCaloriesDemand(String email) {
+        User user = getUserByEmail(email);
+        WeightRecord weightRecordByToday = weightRecordService.getWeightRecordByToday(email);
+        return BMRCalculator.calculateBMR(
+                user.getSex(),
+                weightRecordByToday.getWeight(),
+                user.getHeight(),
+                user.getBirthDate());
+    }
+
+    public UserSummaryResponse getUserStats(String email) {
+
+        int caloriesDemand = getCaloriesDemand(email);
+        int caloriesForToday = eatenMealsService.getCaloriesConsumedForToday(email);
+
+        return UserSummaryResponse.builder()
+                .caloriesDemand(caloriesDemand)
+                .caloriesConsumedToday(caloriesForToday)
+                .caloriesLeftToday(Math.max((caloriesDemand - caloriesForToday), 0))
+                .todayWeight(weightRecordService.getWeightRecordByToday(email).getWeight())
+                .targetWeight(getUserByEmail(email).getTargetWeight())
+                .waterToday(waterIntakeService.getWaterIntakeByToday(email).getVolume())
+                .waterDemand(WATER_DEMAND)
+                .weightRecords(weightRecordService.getUserWeightRecords(email))
+                .build();
+    }
+
 }

@@ -1,119 +1,135 @@
-import React from 'react'
-import { Box, Container, SimpleGrid, Text, Heading, IconButton, Flex } from '@chakra-ui/react'
-import { FaPizzaSlice, FaHamburger, FaIceCream, FaInfoCircle, FaHotdog, FaApple, FaCookie} from 'react-icons/fa'
+import React, { useEffect, useState } from 'react';
+import {Box, Container, SimpleGrid, Text, Heading, IconButton, Flex, Button} from '@chakra-ui/react';
+import {
+  FaPizzaSlice,
+  FaHamburger,
+  FaIceCream,
+  FaInfoCircle,
+  FaHotdog,
+  FaApple,
+  FaCookie,
+  FaArrowRight,
+  FaArrowLeft,
+} from 'react-icons/fa';
+import {getMeal, getMeals, getUserSummary} from '../util/APIUtils';
+import {useNavigate} from "react-router-dom";
 
 export default function Recipes() {
+  const [meals, setMeals] = useState([]);
+  const [meal, setMeal] = useState([]);
+  const [id] = useState(16);
   const FirstBox = {
     bgGradient: "linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))",
-    h: "200px",
+    width: "300px",
+    height: "300px",
     color: "white",
     borderRadius: "lg",
     p: "20px",
     textAlign: "center"
   }
+  const navigate = useNavigate();
+  const handleDetailsClick = (id) => {
+    console.log('Clicked:', id);
+    navigate("/recipes/" + id);
+  };
+  const itemsPerPage = 6;
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const handleDetailsClick = (name, calories) => {
-    // Handle the click event to navigate to the recipe details page
-    console.log("Clicked:", name, calories);
-    // Add your navigation logic here
-  }
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+
+  const changePage = (newPage) => {
+    if (newPage >= 1 && newPage <= Math.ceil(meals.length / itemsPerPage)) {
+      setCurrentPage(newPage);
+    }
+  };
+
+  const fetchMeals = async () => {
+    getMeals(id)
+        .then((response) => {
+          setMeals(response.data);
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.error('Błąd podczas pobierania danych użytkownika', error);
+        });
+  };
+
+  const fetchMeal = async () => {
+    getMeal(id)
+        .then((response) => {
+          setMeal(response.data);
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.error('Błąd podczas pobierania danych użytkownika', error);
+        });
+  };
+
+  useEffect(() => {
+    fetchMeals();
+    fetchMeal();
+  }, []);
 
   return (
-    <div className="App">
-      <Heading color={"white"}>Na co masz ochotę?</Heading>
-      <Container as="section1" maxWidth={"3x1"} py="10px">
-        <SimpleGrid spacing={10} minChildWidth="250px">
-          <Box sx={FirstBox}>
-            <Flex justifyContent="center">
-              <FaApple size={70} color="white" />
-            </Flex>
-            <Text fontSize="xl" fontWeight="bold">Jabłko</Text>
-            <Text>20 kcal</Text>
-            <IconButton
-              aria-label="Details"
-              icon={<FaInfoCircle />}
-              onClick={() => handleDetailsClick("Jabłko", 800)}
-              size="sm"
-              colorScheme="whiteAlpha"
-            />
-          </Box>
-          <Box sx={FirstBox}>
-            <Flex justifyContent="center">
-              <FaHotdog size={70} color="white" />
-            </Flex>
-            <Text fontSize="xl" fontWeight="bold">HotDog</Text>
-            <Text>600 kcal</Text>
-            <IconButton
-              aria-label="Details"
-              icon={<FaInfoCircle />}
-              onClick={() => handleDetailsClick("HotDog", 600)}
-              size="sm"
-              colorScheme="whiteAlpha"
-            />
-          </Box>
-          <Box sx={FirstBox}>
-            <Flex justifyContent="center">
-              <FaCookie size={70} color="white" />
-            </Flex>
-            <Text fontSize="xl" fontWeight="bold">Ciasteczko</Text>
-            <Text>400 kcal</Text>
-            <IconButton
-              aria-label="Details"
-              icon={<FaInfoCircle />}
-              onClick={() => handleDetailsClick("Ciasteczko", 400)}
-              size="sm"
-              colorScheme="whiteAlpha"
-            />
-          </Box>
-        </SimpleGrid>
-      </Container>
+      <div className="App">
+        <Heading color="white">Na co masz ochotę?</Heading>
+        <Container maxWidth={'3x1'} py="10px">
+          <SimpleGrid spacing={10} ml={55} minChildWidth="300px">
+            {meals && meals.slice(startIndex, endIndex).map((meal, index) => (
+                <Box key={meal.id} sx={FirstBox}>
+                  <Flex justifyContent="center">
+                    <img
+                        src={meal.image}
+                        alt={meal.name}
+                        style={{
+                          height: '50%',
+                          width: '50%',
+                          borderRadius: '50%'
+                        }}
+                    />
+                  </Flex>
+                  <Text fontSize="xl" fontWeight="bold">
+                    {meal.name}
+                  </Text>
+                  <Text>{meal.calories} kcal / 100g</Text>
 
-      <Container as="section2" maxWidth={"3x1"} py="10px">
-        <SimpleGrid spacing={10} minChildWidth="250px">
-          <Box sx={FirstBox}>
-            <Flex justifyContent="center">
-              <FaPizzaSlice size={70} color="white" />
-            </Flex>
-            <Text fontSize="xl" fontWeight="bold">Pizza</Text>
-            <Text>800 kcal</Text>
-            <IconButton
-              aria-label="Details"
-              icon={<FaInfoCircle />}
-              onClick={() => handleDetailsClick("Pizza", 800)}
+                  <Button
+                      leftIcon={<FaInfoCircle />}
+                      onClick={() => handleDetailsClick(meal.id)}
+                      size="sm"
+                      colorScheme="whiteAlpha"
+                      variant="outline"
+                  >
+                    Przygotowanie
+                  </Button>
+
+                </Box>
+            ))}
+          </SimpleGrid>
+        </Container>
+
+        <Flex justifyContent="center" mt="20px">
+          <IconButton
+              aria-label="Previous Page"
+              icon={<FaArrowLeft />}
+              onClick={() => changePage(currentPage - 1)}
               size="sm"
               colorScheme="whiteAlpha"
-            />
-          </Box>
-          <Box sx={FirstBox}>
-            <Flex justifyContent="center">
-              <FaHamburger size={70} color="white" />
-            </Flex>
-            <Text fontSize="xl" fontWeight="bold">Hamburger</Text>
-            <Text>600 kcal</Text>
-            <IconButton
-              aria-label="Details"
-              icon={<FaInfoCircle />}
-              onClick={() => handleDetailsClick("Hamburger", 600)}
+              disabled={currentPage === 1}
+          />
+          <Text color="white" mx="10px">
+            {currentPage}
+          </Text>
+          <IconButton
+              aria-label="Next Page"
+              icon={<FaArrowRight />}
+              onClick={() => changePage(currentPage + 1)}
               size="sm"
               colorScheme="whiteAlpha"
-            />
-          </Box>
-          <Box sx={FirstBox}>
-            <Flex justifyContent="center">
-              <FaIceCream size={70} color="white" />
-            </Flex>
-            <Text fontSize="xl" fontWeight="bold">Lody</Text>
-            <Text>400 kcal</Text>
-            <IconButton
-              aria-label="Details"
-              icon={<FaInfoCircle />}
-              onClick={() => handleDetailsClick("Lody", 400)}
-              size="sm"
-              colorScheme="whiteAlpha"
-            />
-          </Box>
-        </SimpleGrid>
-      </Container>
-    </div>
-  )
+              disabled={currentPage === Math.ceil(meals.length / itemsPerPage)}
+          />
+        </Flex>
+      </div>
+  );
 }

@@ -25,6 +25,49 @@ spring:
     baseline-description: "init"
     baseline-version: 0
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: ${GOOGLE_CLIENT_ID}
+            clientSecret: ${GOOGLE_CLIENT_SECRET}
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
+              - profile
+          facebook:
+            clientId: ${FACEBOOK_CLIENT_ID}
+            clientSecret: ${FACEBOOK_CLIENT_SECRET}
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
+              - public_profile
+          github:
+            clientId: ${GITHUB_CLIENT_ID}
+            clientSecret: ${GITHUB_CLIENT_SECRET}
+            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - user:email
+              - read:user
+app:
+  security:
+    jwt:
+      tokenSecret: ${JWT_SECRET_KEY}
+      tokenExpirationSeconds: 1209600 # 14 days
+    cors:
+      allowedOrigins: \*
+    oauth2:
+      # After successfully authenticating with the OAuth2 Provider,
+      # we'll be generating an auth token for the user and sending the token to the
+      # redirectUri mentioned by the client in the /oauth2/authorize request.
+      # We're not using cookies because they won't work well in mobile clients.
+      authorizedRedirectUris:
+        - http://localhost:3000/oauth2/redirect
+        - myandroidapp://oauth2/redirect
+        - myiosapp://oauth2/redirect
+
+  front-url: http://localhost:3000
 server:
   error:
     include-message: always

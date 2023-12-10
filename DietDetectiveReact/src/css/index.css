@@ -11,3 +11,8 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.achieved-day > button {
+  border-radius: 50%;
+  background-color: green;
+}

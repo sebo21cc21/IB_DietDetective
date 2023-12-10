@@ -3,17 +3,20 @@ import ReactDOM from 'react-dom/client';
 import './css/index.css';
 import App from './App';
 import reportWebVitals from './config/reportWebVitals';
-import { ChakraProvider } from '@chakra-ui/react';
-import theme from './config/chakra-theme'; // Import the Chakra UI theme file
+import {ChakraProvider} from '@chakra-ui/react';
+import theme from './config/chakra-theme';
+import {AuthProvider} from "./context/AuthProvider"; // Import the Chakra UI theme file
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <ChakraProvider theme={theme}>
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  </ChakraProvider>
+    <ChakraProvider theme={theme}>
+        <React.StrictMode>
+            <AuthProvider>
+                <App/>
+            </AuthProvider>
+        </React.StrictMode>
+    </ChakraProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

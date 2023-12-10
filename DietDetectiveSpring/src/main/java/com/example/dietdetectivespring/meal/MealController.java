@@ -1,29 +1,39 @@
 package com.example.dietdetectivespring.meal;
 
-import com.example.dietdetectivespring.exception.ObjectNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/meals")
 public class MealController {
 
     private final MealService mealService;
 
-    @GetMapping("/meals")
-    public ResponseEntity<Object> getMeals(){
+    @GetMapping
+    public ResponseEntity<List<Meal>> getMeals() {
         return new ResponseEntity<>(mealService.getAllMeals(), HttpStatus.OK);
     }
 
-    @GetMapping("/meals/{id}")
-    public ResponseEntity<Object> getMeal(@PathVariable("id") int id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<Meal> getMeal(@PathVariable("id") int id) {
         try {
             return new ResponseEntity<>(mealService.getMealById(id), HttpStatus.OK);
-        } catch (ObjectNotFoundException e) {
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/category/{id}")
+    public ResponseEntity<List<Meal>> getMealsByCategoryId(@PathVariable Integer id) {
+        try {
+            return new ResponseEntity<>(mealService.getMealsByCategoryId(id), HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }

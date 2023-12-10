@@ -1,89 +1,65 @@
 package com.example.dietdetectivespring.meal;
 
-import com.example.dietdetectivespring.difficultylevel.DifficultyLevel;
-import com.example.dietdetectivespring.ingredient.Ingredient;
-import com.example.dietdetectivespring.mealsubcategory.MealSubcategory;
-import com.example.dietdetectivespring.person.Person;
-import com.example.dietdetectivespring.preference.Preference;
-import com.example.dietdetectivespring.recipestep.RecipeStep;
+
+import com.example.dietdetectivespring.categories.Category;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.Hibernate;
 
-import java.time.LocalDateTime;
-import java.util.List;
+
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "meals")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @ToString
-@AllArgsConstructor
-@RequiredArgsConstructor
 public class Meal {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
     private Integer id;
-
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "mealsubcategoryid", nullable = false)
-    @ToString.Exclude
-    private MealSubcategory mealSubcategory;
 
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "preparationtime")
-    private int preparationTime;
+    @Column(name = "image")
+    private String image;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "difficultylevelid", nullable = false)
-    @ToString.Exclude
-    private DifficultyLevel difficultyLevel;
+    @Column(name = "unit")
+    private String unit;
 
-    @Column(name = "amountofcalories")
-    private double amountOfCalories;
+    @Column(name = "calories")
+    private Integer calories;
 
-    @Column(name = "amountofcarbohydrates")
-    private double amountOfCarbohydrates;
+    @Column(name = "proteins")
+    private Float proteins;
 
-    @Column(name = "amountofproteins")
-    private double amountOfProteins;
+    @Column(name = "carbohydrates")
+    private Float carbohydrates;
 
-    @Column(name = "amountoffats")
-    private double amountOfFats;
+    @Column(name = "fats")
+    private Float fats;
 
-    @Column(name = "numberofpeople")
-    private int numberOfPeople;
+    @Column(name = "preparation_time")
+    private Integer preparationTime;
 
-    @Column(name = "modifieddate", nullable = false)
-    private LocalDateTime modifiedDate;
+    @Column(name = "long_description", columnDefinition = "TEXT")
+    private String longDescription;
 
-    @ManyToMany
-    @JoinTable(
-            name = "meals_ingredients",
-            joinColumns = @JoinColumn(name = "mealid"),
-            inverseJoinColumns = @JoinColumn(name = "ingredientid"))
-    @ToString.Exclude
-    List<Ingredient> ingredients;
+    @Column(name = "short_description")
+    private String shortDescription;
 
-    @ManyToMany(mappedBy = "meals", fetch = FetchType.LAZY)
-    @ToString.Exclude
+
+    @ManyToMany(mappedBy = "meals")
     @JsonIgnore
-    List<Person> persons;
-
-    @ManyToMany(mappedBy = "meals", fetch = FetchType.LAZY)
     @ToString.Exclude
-    @JsonIgnore
-    List<Preference> preferences;
-
-    @OneToMany(mappedBy = "meal", orphanRemoval = true)
-    @ToString.Exclude
-    private List<RecipeStep> recipeSteps;
+    private Set<Category> categories;
 
     @Override
     public boolean equals(Object o) {

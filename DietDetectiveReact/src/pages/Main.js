@@ -20,12 +20,12 @@ export default function Main() {
             </ListItem>
             <ListItem color={"white"}>
               <Text display={{ base: "none", md: "block" }}>
-                DietDetective to innowacyjna aplikacja dietetyczna, będzie Twoim niezastąpionym narzędziem w drodze do osiągnięcia sukcesu. Dzięki jej funkcjom będziesz mógł/a śledzić swoje spożycie kalorii oraz składników odżywczych, otrzymywać spersonalizowane porady dietetyczne i przepisy
+                DietDetective to innowacyjna aplikacja dietetyczna, będzie Twoim niezastąpionym narzędziem w drodze do osiągnięcia sukcesu. Dzięki jej funkcjom będziesz śledzić swoje spożycie kalorii oraz składników odżywczych, otrzymywać spersonalizowane porady dietetyczne i przepisy
               </Text>
             </ListItem>
           </List>
           <Image
-            boxSize={{ base: '400px', md: '600px', xl: '640px'}}
+            boxSize={{ base: '400px', md: '600px', xl: '770px'}}
             src="img/circle.png"
             alt="Circle"
             position={"absolute"}

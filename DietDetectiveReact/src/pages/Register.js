@@ -1,94 +1,237 @@
-import React from 'react';
-import { Box, Heading, FormControl, FormLabel, Input, Button, Text, Switch, Link as ChakraLink, Flex } from '@chakra-ui/react';
-import { Link, NavLink } from 'react-router-dom';
-import { FaGithub, FaGoogle } from 'react-icons/fa';
+import React, {useContext, useState} from 'react';
+import {
+    Box,
+    Heading,
+    FormControl,
+    FormLabel,
+    Input,
+    Button,
+    Text,
+    Link as ChakraLink,
+    Alert,
+    AlertIcon,
+    AlertDescription,
+    Checkbox,
+} from '@chakra-ui/react';
+import {NavLink, useNavigate} from 'react-router-dom';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import AuthContext from "../context/AuthProvider";
+import { register } from '../util/APIUtils';
 
 const formContainerStyles = {
-  maxW: "md",
-  mx: "auto",
-  mt: 6,
-  p: 10,
-  borderWidth: 1,
-  borderRadius: "md",
-  boxShadow: "md",
-  bgGradient: "linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.8))"
+    maxW: "md",
+    mx: "auto",
+    mt: 6,
+    p: 10,
+    borderWidth: 1,
+    borderRadius: "md",
+    boxShadow: "md",
+    bgGradient: "linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.8))"
 };
 
 const headingStyles = {
-  size: "lg",
-  textAlign: "center",
-  mb: 4,
-  color: "white",
+    size: "lg",
+    textAlign: "center",
+    mb: 4,
+    color: "white",
 };
 
 const textStyles = {
-  color: "gray.500",
-  mb: 2,
+    color: "gray.500",
+    textAlign: "center",
+    mb: 2,
 };
 
 const formLabelStyles = {
-  color: "white",
+    color: "white",
 };
 
 const linkStyles = {
-  color: "blue.500",
+    color: "blue.500",
 };
 
 export default function Register() {
-  return (
-    <Box sx={formContainerStyles}>
-      <Heading sx={headingStyles}>Witaj!</Heading>
-      <Text sx={textStyles}>Skorzystaj z tych niesamowitych formularzy, aby bezpłatnie zalogować się lub utworzyć nowe konto w swoim projekcie.</Text>
-      <Text sx={headingStyles}>Zarejestruj się z</Text>
-      <FormControl id="Github" mb={4}>
-        <Flex justifyContent="center">
-          <Flex justifyContent="flex-start">
-            <Box px={5}>
-              <Link href="https://www.github.com/" isExternal mx={2} >
-                  <FaGithub size={70} />
-              </Link>
-            </Box>
-            <Box px={5}>
-              <Link href="https://www.google.com/" isExternal mx={2} >
-                  <FaGoogle size={70} />
-              </Link>
-            </Box>
-          </Flex>
-        </Flex>
-      </FormControl>
+    const {setAuth} = useContext(AuthContext);
+    const validationSchema = Yup.object().shape({
+        name: Yup.string().required('Imię jest wymagane'),
+        surname: Yup.string().required('Nazwisko jest wymagane'),
+        email: Yup.string().required('Email jest wymagany').email('Nieprawidłowy format email'),
+        password: Yup.string()
+            .required('Hasło jest wymagane')
+            .min(8, 'Hasło musi mieć co najmniej 8 znaków')
+            .matches(/(?=.*[!@#$%^&*])/, 'Hasło musi zawierać co najmniej jeden znak specjalny (!@#$%^&*)'),
+        agreeToTerms: Yup.boolean().oneOf([true], 'Musisz zaakceptować Regulamin i warunki'),
+    });
+    const navigate = useNavigate();
+    const [isChecked, setIsChecked] = useState(false);
 
-      <Text sx={headingStyles}>lub</Text>
+    const formik = useFormik({
+        initialValues: {
+            name: '',
+            surname: '',
+            email: '',
+            password: '',
+            agreeToTerms: false,
+        },
+        validationSchema,
+        onSubmit: async (values) => {
+            try {
+                const registerRequest = {
+                    firstname: values.name,
+                    lastname: values.surname,
+                    email: values.email,
+                    password: values.password,
+                };
 
+                const responseData = await register(registerRequest);
 
-      <FormControl id="fullName" mb={4}>
-        <FormLabel sx={formLabelStyles}>Imię i Nazwisko</FormLabel>
-        <Input color = "white" type="text" placeholder="Wprowadź Imię i Nazwisko" />
-      </FormControl>
+                setAuth({
+                    isAuthenticated: true,
+                    currentUser: responseData,
+                    isInterviewCompleted: responseData.interviewCompleted
+                });
 
-      <FormControl id="email" mb={4}>
-        <FormLabel sx={formLabelStyles}>Email</FormLabel>
-        <Input color = "white" type="email" placeholder="Wprowadź Email" />
-      </FormControl>
+                navigate('/interview');
+                console.log('Registration successful:', responseData);
+            } catch (error) {
+                console.error('Registration failed:', error);
+            }
+        },
+    });
 
-      <FormControl id="password" mb={4}>
-        <FormLabel sx={formLabelStyles}>Hasło</FormLabel>
-        <Input color = "white" type="password" placeholder="Wprowadź hasło" />
-      </FormControl>
+    const handleCheckboxChange = () => {
+        setIsChecked(!isChecked);
+        formik.setFieldValue('agreeToTerms', !isChecked);
+    };
 
-      <FormControl display="flex" alignItems="center" mb={4}>
-        <Switch id="rememberMe" colorScheme="blue" />
-        <FormLabel htmlFor="rememberMe" mb={0} ml={2}>
-          <Text sx={formLabelStyles}>Pamiętaj mnie</Text>
-        </FormLabel>
-      </FormControl>
-      <Button colorScheme="messenger" size="md" w="full" md="2">Zaloguj się</Button>
+    return (
+        <Box sx={formContainerStyles}>
+            <Heading sx={headingStyles}>Witaj!</Heading>
+            <Text sx={textStyles}>
+                Uzupełnij, aby bezpłatnie zalogować się lub utworzyć nowe konto w systemie.
+            </Text>
 
-      <Text textAlign="center" color= "gray.500">
-        Masz konto?{' '}
-        <ChakraLink as={NavLink} to="/login" sx={linkStyles}>
-          Zaloguj się
-        </ChakraLink>
-      </Text>
-    </Box>
-  );
+            <form onSubmit={formik.handleSubmit}>
+                <FormControl id="fullName" mb={4}>
+                    <FormLabel sx={formLabelStyles}>Imię</FormLabel>
+                    <Input
+                        color="white"
+                        type="text"
+                        placeholder="Wprowadź Imię"
+                        name="name"
+                        value={formik.values.name}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.name && formik.errors.name && (
+                        <Alert status="error" variant="subtle" mt={1}>
+                            <AlertIcon />
+                            <AlertDescription>{formik.errors.name}</AlertDescription>
+                        </Alert>
+                    )}
+                </FormControl>
+
+                <FormControl id="surname" mb={4}>
+                    <FormLabel sx={formLabelStyles}>Nazwisko</FormLabel>
+                    <Input
+                        color="white"
+                        type="text"
+                        placeholder="Wprowadź Nazwisko"
+                        name="surname"
+                        value={formik.values.surname}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.surname && formik.errors.surname && (
+                        <Alert status="error" variant="subtle" mt={1}>
+                            <AlertIcon />
+                            <AlertDescription>{formik.errors.surname}</AlertDescription>
+                        </Alert>
+                    )}
+                </FormControl>
+
+                <FormControl id="email" mb={4}>
+                    <FormLabel sx={formLabelStyles}>Email</FormLabel>
+                    <Input
+                        color="white"
+                        type="email"
+                        placeholder="Wprowadź Email"
+                        name="email"
+                        value={formik.values.email}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.email && formik.errors.email && (
+                        <Alert status="error" variant="subtle" mt={1}>
+                            <AlertIcon />
+                            <AlertDescription>{formik.errors.email}</AlertDescription>
+                        </Alert>
+                    )}
+                </FormControl>
+
+                <FormControl id="password" mb={4}>
+                    <FormLabel sx={formLabelStyles}>Hasło</FormLabel>
+                    <Input
+                        color="white"
+                        type="password"
+                        placeholder="Wprowadź hasło"
+                        name="password"
+                        value={formik.values.password}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.password && formik.errors.password && (
+                        <Alert status="error" variant="subtle" mt={1}>
+                            <AlertIcon />
+                            <AlertDescription>{formik.errors.password}</AlertDescription>
+                        </Alert>
+                    )}
+                </FormControl>
+
+                <FormControl mb={4}>
+                    <Checkbox
+                        isChecked={isChecked}
+                        onChange={handleCheckboxChange}
+                        colorScheme="blue"
+                        color={"white"}
+
+                    >
+                         <span style={{fontSize: "14px"}}>
+                             Niniejszym akceptuję <ChakraLink
+                             href="https://www.freeprivacypolicy.com/live/6b237d9c-11fb-4bc4-a979-572c2f3e57fd"
+                             color="blue.500" target="_blank">Regulamin, Warunki Handlowe</ChakraLink> i zgadzam się na warunki i postanowienia tego serwisu.*
+                         </span>
+                    </Checkbox>
+                    {formik.touched.agreeToTerms && formik.errors.agreeToTerms && (
+                        <Alert status="error" variant="subtle" mt={1}>
+                            <AlertIcon />
+                            <AlertDescription>{formik.errors.agreeToTerms}</AlertDescription>
+                        </Alert>
+                    )}
+                </FormControl>
+                <FormControl>
+                    <Checkbox
+                        colorScheme="blue"
+                        color={"white"}
+                    >
+                        <span style={{fontSize: "12px"}}>
+                        Wyrażam zgodę na kontakt ze mną, w tym na przesyłanie informacji sprzedażowych i marketingowych dotyczących DietDetective, od LDV Polska S.A. z siedzibą w Warszawie, za pomocą środków komunikacji elektronicznej (e-mail, SMS), a także wyrażenie zgody na przetwarzanie przez LDV Polska S.A. z siedzibą w Warszawie mojego dane osobowe (adres e-mail, numer telefonu) w tym celu. Podstawa prawna przetwarzania danych jest art. 6 ust. (a) RODO.
+                        </span>
+                    </Checkbox>
+                </FormControl>
+
+                <Button colorScheme="messenger" size="md" w="full" md="2" type="submit" >
+                        Zarejestruj się
+                </Button>
+            </form>
+
+            <Text textAlign="center" color="gray.500">
+                Masz już konto?{' '}
+                <ChakraLink as={NavLink} to="/login" sx={linkStyles}>
+                    Zaloguj się
+                </ChakraLink>
+            </Text>
+        </Box>
+    );
 }

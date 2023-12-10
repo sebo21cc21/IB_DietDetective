@@ -1,12 +1,128 @@
-import { Container, Box, SimpleGrid, Text, Heading, CircularProgress, CircularProgressLabel, Flex, Image, List, ListItem, Progress, Input, Button, Table } from '@chakra-ui/react'
-import React, { useState, useEffect } from 'react';
-import { FaTimes } from "react-icons/fa";
-import axios from 'axios';
-import { determineGoal, calculateBMR, calculateAge, calculatePercentWeight } from './Account';
+import {
+  Container,
+  Box,
+  SimpleGrid,
+  Text,
+  CircularProgress,
+  CircularProgressLabel,
+  Flex,
+  Image,
+  Button
+} from '@chakra-ui/react'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import React, {useEffect, useState} from 'react'
+import {getCurrentUser, getUserSummary, getUserWeight} from "../util/APIUtils";
+import {useNavigate} from "react-router-dom";
+export function calculatePercentWeight(weight, estimatedWeight) {
+  let percentWeight = 100 -(weight / estimatedWeight) * 100;
+  if (percentWeight > 100) {
+    percentWeight = 100;
+  }
+  return Math.floor(percentWeight);
+}
+
+export function calculateWeightCircular(weight, estimatedWeight) {
+  let difWeight = weight - estimatedWeight;
+  return Math.floor(difWeight);
+}
+
+export function calculateWeightCircularPercent(weight, estimatedWeight) {
+  let percentWeight;
+  if (weight > estimatedWeight) {
+    percentWeight = ((weight - estimatedWeight) / weight) * 100;
+    percentWeight = 100 - percentWeight; // This will give a value greater than 100 if the weight is above the target
+  } else {
+    percentWeight = ((estimatedWeight - weight) / estimatedWeight) * 100;
+    percentWeight = 100 - percentWeight; // This will give a value less than 100 if the weight is below the target
+  }
+  return Math.floor(percentWeight);
+}
+
+export function calculatePercentWater(weight, estimatedWeight) {
+  let percentWeight = (weight / estimatedWeight) * 100;
+  if (percentWeight > 100) {
+    percentWeight = 100;
+  } else if (percentWeight < 0) {
+    percentWeight = 0;
+  }
+  return Math.floor(percentWeight);
+}
 export default function Monitor() {
-  const [lastMeals, setLastMeals] = useState([]);
-  const [isInputValid, setIsInputValid] = useState(false);
-  const [newMeal, setNewMeal] = useState({ idIngredientCharacter: 1, name: "", unit: "szt", amountOfCalories: 0.0, amountOfCarbohydrates: 0.0, amountOfProteins: 0.0, amountOfFats: 0.0 });
+  const [weightDifference, setWeightDifference] = useState(0);
+  const [weight, setWeight] = useState();
+  const navigate = useNavigate();
+  const [summary, setSummary] = useState(null);
+  const [user, setUser] = useState(null);
+  const [isIndeterminate, setIsIndeterminate] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsIndeterminate(false);
+    }, 2000);
+
+    return () => clearTimeout(timer); // cleanup the timer
+  }, []);
+
+  const weightValue = summary && summary.todayWeight != null && summary.targetWeight != null
+      ? `${calculateWeightCircular(summary.todayWeight, summary.targetWeight)}`
+      : '';
+
+  const waterValue = summary && summary.waterToday != null && summary.waterDemand != null
+      ? `${calculatePercentWater(summary.waterToday, summary.waterDemand)}`
+      : '';
+
+  const weightValuePercent = summary && summary.todayWeight != null && summary.targetWeight != null
+      ? `${calculateWeightCircularPercent(summary.todayWeight, summary.targetWeight)}`
+      : '';
+  console.log(weightValuePercent)
+  const fetchSummarData = async () => {
+    getUserSummary()
+        .then(response => {
+          setSummary(response.data);
+          console.log(response.data);
+        })
+        .catch(error => {
+          console.error('Błąd podczas pobierania danych użytkownika', error);
+        });
+  };
+  const currentDate = new Date().toLocaleDateString('pl-PL');
+  const fetchUserWeight = () => {
+    getUserWeight()
+        .then(response => {
+          const processedData = response.data.map(item => ({
+            date: item.date,
+            waga: item.weight
+          }));
+          setWeight(processedData);
+          if (processedData.length >= 2) {
+            const lastIndex = processedData.length - 1;
+            const lastWeight = processedData[lastIndex].waga;
+            const secondLastWeight = processedData[lastIndex - 1].waga;
+            const difference = lastWeight - secondLastWeight;
+            setWeightDifference(difference);
+          }
+        })
+        .catch(error => {
+          console.error('Błąd podczas pobierania danych użytkownika', error);
+        });
+  };
+  const fetchUserData = () => {
+    getCurrentUser()
+        .then(response => {
+          setUser(response.data);
+          console.log(response.data);
+        })
+        .catch(error => {
+          console.error('Błąd podczas pobierania danych użytkownika', error);
+        });
+  };
+
+  useEffect(() => {
+    fetchSummarData();
+    fetchUserData();
+    fetchUserWeight();
+  }, []);
+
+
   const FirstBox = {
     bgGradient: "linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))",
     h: "100px",
@@ -26,453 +142,157 @@ export default function Monitor() {
 
   const ThirdBox = {
     bgGradient: "linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))",
-    h: "350px",
+    h: "400px",
     color: "white",
     borderRadius: "lg",
     p: "20px",
     textAlign: "center"
   }
 
-  const FourthBox = {
-    bgGradient: "linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))",
-    color: "white",
-    maxH: "350px", // Ustawia maksymalną wysokość kontenera
-    borderRadius: "lg",
-    p: "20px",
-    textAlign: "center",
-    overflowY: "auto", // Dodaje pasek przewijania, jeśli zawartość przekracza maksymalną wysokość
-  };
   const miniBox = {
     h: "60px",
-    w: "50%",
+    w: "120%",
     color: "white",
     borderRadius: "lg",
     p: "5px",
     mt: "5px",
   }
-  const errorInput = {
-    border: "solid red"
-  }
+
   const redNumber = {
     color: "red"
   }
-  const [inputErrors, setInputErrors] = useState({
-    name: false,
-    amountOfCalories: false,
-    amountOfCarbohydrates: false,
-    amountOfProteins: false,
-    amountOfFats: false
-  });
-  const [userData, setUserData] = useState(null);
-
-  //Person
-  useEffect(() => {
-    axios.get('http://localhost:8080/person?limit=1')
-      .then(response => {
-        const sortedPerson = response.data.sort((a, b) => b.id - a.id);
-        const lastPerson = sortedPerson.slice(0, 1);
-        setUserData(lastPerson[0]);
-      })
-      .catch(error => console.error(error));
-  }, []);
-
-  //Ingerdeint
-  useEffect(() => {
-    fetch('http://localhost:8080/ingredient?limit=10') // Dodaj parametr limit do żądania HTTP
-      .then(response => response.json())
-      .then(data => {
-        const sortedMeals = data.sort((a, b) => b.id - a.id); // Sortuj posiłki według ID w kolejności malejącej
-        const last10Meals = sortedMeals.slice(0, 10); // Ogranicz liczbę posiłków do 10
-        setLastMeals(last10Meals);
-      })
-      .catch(error => console.error(error));
-  }, []);
-
-  useEffect(() => {
-    // Sprawdzanie poprawności wprowadzonych danych
-    const { name, amountOfCalories, amountOfCarbohydrates, amountOfProteins, amountOfFats } = newMeal;
-    const isValid =
-      name.trim() !== "" &&
-      !isNaN(parseFloat(amountOfCalories)) &&
-      !isNaN(parseFloat(amountOfCarbohydrates)) &&
-      !isNaN(parseFloat(amountOfProteins)) &&
-      !isNaN(parseFloat(amountOfFats));
-    setIsInputValid(isValid);
-  }, [newMeal]);
-
-  const deleteMeal = async (mealId) => {
-    try {
-      const response = await fetch(`http://localhost:8080/ingredient/${mealId}`, {
-        method: 'DELETE',
-      });
-      if (response.ok) {
-        setLastMeals(prevMeals => prevMeals.filter(meal => meal.id !== mealId));
-      } else {
-        throw new Error('Error deleting meal');
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const addMeal = () => {
-    if (!isInputValid) {
-      return; // Jeśli dane nie są poprawne, nie dodawaj posiłku
-    }
-    // Wysyłanie żądania POST na http://localhost:8080/ingredient
-    fetch('http://localhost:8080/ingredient', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newMeal),
-    })
-      .then(response => response.json())
-      .then(data => {
-        // Aktualizowanie listy ostatnio spożytych posiłków
-        setLastMeals(prevMeals => [data, ...prevMeals]);
-      })
-      .catch(error => console.error(error));
-  };
-
-
-  const handleNewMealChange = event => {
-    const { name, value } = event.target;
-    setNewMeal(prevMeal => ({ ...prevMeal, [name]: value }));
-
-    if (name === "name") {
-      setInputErrors(prevErrors => ({ ...prevErrors, name: value.trim() === "" }));
-    } else {
-      setInputErrors(prevErrors => ({
-        ...prevErrors,
-        [name]: isNaN(parseFloat(value))
-      }));
-    }
-  };
-
-  const [todayCalories, setTodayCalories] = useState(0);
-  const [todayCarbohydrates, setTodayCarbohydrates] = useState(0);
-  const [todayProteins, setTodayProteins] = useState(0);
-  const [todayFats, setTodayFats] = useState(0);
-  useEffect(() => {
-    const fetchTodayCalories = async () => {
-      const calories = await calculateTodayCalories();
-      setTodayCalories(calories);
-    };
-
-    fetchTodayCalories();
-  }, []);
-
-  useEffect(() => {
-    const fetchTodayNutrient = async () => {
-      const calories = await calculateTodayNutrient("amountOfCarbohydrates");
-      setTodayCarbohydrates(calories);
-    };
-
-    fetchTodayNutrient();
-  }, []);
-
-  useEffect(() => {
-    const fetchTodayNutrient = async () => {
-      const calories = await calculateTodayNutrient("amountOfProteins");
-      setTodayProteins(calories);
-    };
-
-    fetchTodayNutrient();
-  }, []);
-
-  useEffect(() => {
-    const fetchTodayNutrient = async () => {
-      const calories = await calculateTodayNutrient("amountOfFats");
-      setTodayFats(calories);
-    };
-
-    fetchTodayNutrient();
-  }, []);
-
-  const calculateTodayCalories = async () => {
-    try {
-      const response = await fetch('http://localhost:8080/ingredient', {
-        method: 'GET',
-      });
-      const ingredients = await response.json();
-      let todayCalories = 0;
-
-      ingredients.forEach((ingredient) => {
-        todayCalories += ingredient.amountOfCalories;
-      });
-
-      return todayCalories;
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const calculateTodayNutrient = async (nutrientType) => {
-    try {
-      const response = await fetch('http://localhost:8080/ingredient', {
-        method: 'GET',
-      });
-      const ingredients = await response.json();
-      let todayNutrient = 0;
-
-      ingredients.forEach((ingredient) => {
-        todayNutrient += ingredient[nutrientType];
-      });
-
-      return todayNutrient;
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const age = calculateAge(userData && userData.dateOfBirth);
-  const percentWeight = calculatePercentWeight(userData && userData.weight, userData && userData.estimated_weight);
-  const BMR = calculateBMR(userData && userData.gender, userData && userData.weight, userData && userData.height, age);
-  const goal = determineGoal(userData && userData.weight, userData && userData.estimated_weight);
-  const remainingCalories = BMR - todayCalories;
   return (
-    <div className="App">
-      <Container as="section" maxWidth={"4x1"} py="10px">
-        <SimpleGrid spacing={10} minChildWidth="250px">
-          <Box sx={FirstBox}>
-            <Text fontSize="xl" fontWeight="bold">Zapotrzebowanie</Text>
-            <Text>{BMR} kcal</Text>
-          </Box>
-          <Box sx={FirstBox}>
-            <Text fontSize="xl" fontWeight="bold">Dzisiejsze kalorie</Text>
-            <Text >{todayCalories} kcal</Text>
-          </Box>
-          <Box sx={FirstBox}>
-            <Text sx={remainingCalories < 0 ? redNumber : ""} fontSize="xl" fontWeight="bold">Pozostało</Text>
-            <Text sx={remainingCalories < 0 ? redNumber : ""}>{remainingCalories} kcal</Text>
-          </Box>
-          <Box sx={FirstBox}>
-            <Text fontSize="xl" fontWeight="bold">Waga</Text>
-            <Text>
-              {userData && userData.weight} kg <span style={{ color: "green", fontSize: "75%" }}>{100 - percentWeight}%</span></Text>
-          </Box>
-        </SimpleGrid>
-      </Container>
+      <div className="App">
+        <Container as="section" maxWidth={"4x1"} py="10px">
+          <SimpleGrid spacing={10} minChildWidth="250px">
+            <Box sx={FirstBox}>
+              <Text fontSize="xl" fontWeight="bold">Zapotrzebowanie</Text>
+              <Text>{summary ? summary.caloriesDemand : ''} kcal</Text>
+            </Box>
+            <Box sx={FirstBox}>
+              <Text fontSize="xl" fontWeight="bold">Dzisiejsze kalorie</Text>
+              <Text>{summary ? summary.caloriesConsumedToday : ''} kcal</Text>
+            </Box>
+            <Box sx={FirstBox}>
+              <Text sx={summary ? summary.caloriesLeftToday : '' < 0 ? redNumber : ""} fontSize="xl" fontWeight="bold">Pozostało</Text>
+              <Text sx={summary ? summary.caloriesLeftToday : '' < 0 ? redNumber : ""} >{summary ? summary.caloriesLeftToday : ''} kcal</Text>
+            </Box>
+            <Box sx={FirstBox}>
+              <Text fontSize="xl" fontWeight="bold">Waga</Text>
+              <Text>
+                {summary ? summary.todayWeight : ''} kg </Text>
+              <Text> <span style={{
+                color: "green",
+              }}>{summary ? `zostało ${calculatePercentWeight(summary.todayWeight, summary.targetWeight)}% wagi do celu` : ''}</span>
+              </Text>
+            </Box>
+          </SimpleGrid>
+        </Container>
 
-      <Container as="section2" maxWidth={"3x1"} py="10px">
-        <SimpleGrid spacing={10} minChildWidth="250px">
-          <Box sx={SecondBox} bgImage="url('img/medusa.png')" backgroundSize='cover'>
-            <Text>
-              Witaj ponownie!<br />
-              <Heading size='lg'>{userData && userData.name} {userData && userData.surname}</Heading>
-              <span style={{ color: "#A0AEC0" }}>Miło Cię znów widzieć!<br />
-                Czy masz jakieś pytania?</span>
-            </Text>
-          </Box>
+        <Container as="section" maxWidth={"3x1"} py="10px">
+          <SimpleGrid spacing={10} minChildWidth="250px">
+            <Box sx={SecondBox} bgImage="url('img/medusa.png')" backgroundSize='cover'>
+              <Text>
+                {user ? `${user.firstName} ${user.lastName}` : ''}</Text>
+                <Text>
+                <span style={{ color: "#A0AEC0" }}>Miło Cię znów widzieć!</span>
+                </Text>
+              <Text>
+                <span style={{ color: "#A0AEC0" }}>Obserwuj swoje postępy.</span>
+              </Text>
 
-          <Box sx={SecondBox} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
+            </Box>
 
-            <Text fontSize="xl" fontWeight="bold">Miernik osiągnięć</Text>
-            <Flex justifyContent="left">
-              <Flex>
-                <Text><span style={{ color: "#A0AEC0" }}>Dążysz do {userData && userData.estimated_weight} kg </span></Text>
-                <Text><span style={{ color: "#A0AEC0" }}>Cel: {goal} </span></Text>
+            <Box sx={SecondBox} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
+
+              <Text fontSize="xl" fontWeight="bold">Miernik osiągnięć</Text>
+              <Flex justifyContent={"flex-start"}>
+                <Text><span style={{ color: "#A0AEC0" }}>Dążysz do {summary ? summary.targetWeight : ''}kg </span>
+                </Text>
+                <Text><span style={{ color: "#A0AEC0" }}>Cel: {user ? user.goal : ''} </span>
+                </Text>
+
+                <Flex justifyContent="right">
+                  <CircularProgress
+                      isIndeterminate={isIndeterminate}
+                      value={!isIndeterminate ? parseInt(weightValuePercent) : undefined}
+                      color='green.300'
+                      size='150px'
+                      thickness='14px'
+                  >
+                    <CircularProgressLabel>
+                      {weightValue}kg
+                    </CircularProgressLabel>
+                  </CircularProgress>
+                </Flex>
               </Flex>
-              <Flex justifyContent="right">
-                <CircularProgress value={86} color='green.300' size='150px' thickness='14px'>
-                  <CircularProgressLabel>86%</CircularProgressLabel>
-                </CircularProgress>
+            </Box>
+
+            <Box sx={SecondBox} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
+              <Flex justifyContent={"space-between"}>
+              <Text fontSize="xl" fontWeight="bold">Spożycie wody</Text>
+              <Button
+                  size='sm'
+                  colorScheme="teal" // Wybierz odpowiedni kolor
+                  onClick={() => {navigate('/water')}}
+              >
+                Edytuj
+              </Button>
               </Flex>
-            </Flex>
-          </Box>
+              <Flex justifyContent={"flex"}>
+              <Flex direction="column" alignItems="center" justifyContent="center">
 
-          <Box sx={SecondBox} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
-            <Text fontSize="xl" fontWeight="bold">Spożycie wody</Text>
-            <Flex justifyContent={"flex"}>
+                <Box sx={miniBox} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
+                  <Text fontSize="md" ml="10px"><span style={{ color: "#A0AEC0" }}>Dzienny cel</span></Text>
+                  <Text fontSize="md" fontWeight="bold" ml="15px">{summary ? `${summary.waterDemand} ml` : ''}</Text>
+                </Box>
 
-              <Box sx={miniBox} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
+                <Box sx={miniBox} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
+                  <Text fontSize="md" ml="10px"><span style={{ color: "#A0AEC0" }}>Osiągnięto</span></Text>
+                  <Text fontSize="md" fontWeight="bold" ml="15px">{summary ? `${summary.waterToday} ml`: ''}</Text>
+                </Box>
+                </Flex>
+                <Box sx={{ justifyContent: 'right' }} ml = {30}>
+                  <CircularProgress
+                      isIndeterminate={isIndeterminate}
+                      value={!isIndeterminate ?  waterValue : undefined}
+                      size='150px'
+                      thickness='7'
+                  >
+                    <CircularProgressLabel>
+                      {waterValue}%
+                    </CircularProgressLabel>
+                  </CircularProgress>
+                </Box>
+              </Flex>
 
-                <Text fontSize="md" ml="10px"><span style={{ color: "#A0AEC0" }}>Dzienny cel</span></Text>
-                <Text fontSize="md" fontWeight="bold" ml="15px">2 500 ml</Text>
+            </Box>
+          </SimpleGrid>
+        </Container>
 
-              </Box>
-
-              <Box sx={miniBox} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
-                <Text fontSize="md" ml="10px"><span style={{ color: "#A0AEC0" }}>Osiągnięto</span></Text>
-                <Text fontSize="md" fontWeight="bold" ml="15px">1 000 ml</Text>
-              </Box>
-
-              <Box sx={{ justifyContent: 'right' }}>
-                <CircularProgress variant="determinate" value={40} size='120px' thickness={5}>
-                  <CircularProgressLabel>40%</CircularProgressLabel>
-                </CircularProgress>
-              </Box>
-            </Flex>
-          </Box>
-        </SimpleGrid>
-      </Container>
-
-      <Container as="section" maxWidth={"2x1"} py="10px">
-        <SimpleGrid spacing={10} minChildWidth="250px">
-          <Box sx={ThirdBox}>
-            <Text fontSize="xl" fontWeight="bold">Waga</Text>
-            <Text>
-              <span style={{ color: "green" }}>-5kg</span> <span style={{ color: "grey" }}>2023</span>
-            </Text>
-            <Image mt="40px" src="img/Graph.png"></Image>
-          </Box>
-          <Box sx={ThirdBox}>
-            <Image src="img/Graph2.png"></Image>
-            <Text fontSize="xl" fontWeight="bold">Spożycie w ostatnim tygodniu</Text>
-            <Text><span style={{ color: "green" }}>(+23 %)</span> <span style={{ color: "grey" }}>niż poprzedni tydzień</span></Text>
-            <Flex justifyContent={'flex-start'} >
-
-              <List mx="10%">
-                <ListItem>
-                  <Text>Węglowodany</Text>
-                </ListItem>
-                <ListItem>
-                  <Text>{todayCarbohydrates} g</Text>
-                </ListItem>
-                <Progress size='xs' value={50} />
-              </List>
-
-              <List mx="10%">
-                <ListItem>
-                  <Text>Tłuszcze</Text>
-                </ListItem>
-                <ListItem>
-                  <Text>{todayFats} g</Text>
-                </ListItem>
-                <Progress size='xs' value={79} />
-              </List>
-
-              <List mx="10%">
-                <ListItem>
-                  <Text>Białka</Text>
-                </ListItem>
-                <ListItem>
-                  <Text>{todayProteins} g</Text>
-                </ListItem>
-                <Progress size='xs' value={79} />
-              </List>
-            </Flex>
-
-          </Box>
-
-        </SimpleGrid>
-      </Container>
-
-      <Container as="section4" maxWidth={"2x1"} py="10px">
-        <SimpleGrid spacing={10} minChildWidth="250px">
-          <Box sx={FourthBox}>
-            <Text fontSize="xl" fontWeight="bold">Ostatnio spożyte posiłki</Text>
-            <Flex justifyContent="center">
-              <Input type="text" name="name" value={newMeal.name} onChange={handleNewMealChange} placeholder="Nazwa" sx={inputErrors.name ? errorInput : ""} />
-              <Input type="text" name="amountOfCalories" value={newMeal.amountOfCalories} onChange={handleNewMealChange} placeholder="Kalorie" sx={inputErrors.amountOfCalories ? errorInput : ""} />
-              <Input type="text" name="amountOfCarbohydrates" value={newMeal.amountOfCarbohydrates} onChange={handleNewMealChange} placeholder="Węglowodany" sx={inputErrors.amountOfCarbohydrates ? errorInput : ""} />
-              <Input type="text" name="amountOfProteins" value={newMeal.amountOfProteins} onChange={handleNewMealChange} placeholder="Białka" sx={inputErrors.amountOfProteins ? errorInput : ""} />
-              <Input type="text" name="amountOfFats" value={newMeal.amountOfFats} onChange={handleNewMealChange} placeholder="Tłuszcze" sx={inputErrors.amountOfFats ? errorInput : ""} />
-              <Button colorScheme="messenger" w="full" onClick={addMeal}>Dodaj</Button>
-            </Flex>
-
-            <Flex justifyContent="center">
-              <Table>
-                <thead>
-                  <tr>
-                    <th>Posiłek</th>
-                    <th>Ilość</th>
-                    <th>Kalorie</th>
-                    <th>Węglowodany</th>
-                    <th>Białka</th>
-                    <th>Tłuszcze</th>
-                    <th>Usuń</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lastMeals.map(meal => (
-                    <tr key={meal.id}>
-                      <td>{meal.name}</td>
-                      <td>{meal.unit}</td>
-                      <td>{meal.amountOfCalories}</td>
-                      <td>{meal.amountOfCarbohydrates}</td>
-                      <td>{meal.amountOfProteins}</td>
-                      <td>{meal.amountOfFats}</td>
-                      <td style={{ paddingLeft: '2%' }}>
-                        <FaTimes
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => deleteMeal(meal.id)}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Flex>
-          </Box>
-          <Box sx={FourthBox}>
-            <Text fontSize="xl" fontWeight="bold">Makroskładniki z dnia</Text>
-            <Text>Cel</Text>
-            <Flex justifyContent="space-around" alignItems="center">
-              <Box sx={miniBox}>
-                <Text fontSize="lg" fontWeight="bold">Węglowodany</Text>
-                <CircularProgress
-                  value={(todayCarbohydrates / (3 * (userData && userData.weight))) * 100}
-                  size='170px'
-                  color="green"
-                  thickness='4px'
+        <Container as="section" maxWidth={"2x1"} py="10px">
+          <SimpleGrid spacing={10} minChildWidth="250px">
+            <Flex sx={ThirdBox} flexDirection="column" alignItems="center">
+              <Text fontSize="xx-large" >Waga</Text>
+              <Text>
+                Od ostatniego pomiaru zmiana wynosi: <span style={{ color: "green", marginRight:"50px"}}>{weightDifference}kg</span> Ostatni pomiar wykonano: <span style={{ color: "green" }}>{currentDate}</span>
+              </Text>
+              <ResponsiveContainer>
+                <AreaChart
+                    data={weight}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                 >
-                  <CircularProgressLabel>
-                    Cel <br></br>
-                    {Math.min(Math.floor((todayCarbohydrates / (3 * (userData && userData.weight))) * 100), 100)}%
-                  </CircularProgressLabel>
-                </CircularProgress>
-                {Math.min(Math.floor((todayCarbohydrates / (3 * (userData && userData.weight))) * 100), 100) === 100 ? (
-                  <Text fontSize="lg" fontWeight="bold"><span style={{ color: "green" }}>Osiągnięto</span></Text>
-                ) : (
-                  <Text fontSize="lg" fontWeight="bold">Nie osiągnięto</Text>
-                )}
-              </Box>
-
-              <Box sx={miniBox}>
-                <Text fontSize="lg" fontWeight="bold">Białko</Text>
-                <CircularProgress
-                  value={(todayProteins / (userData && userData.weight)) * 100}
-                  size='170px'
-                  color="blue"
-                  thickness='4px'
-                >
-                  <CircularProgressLabel>
-                    Cel <br></br>
-                    {Math.min(Math.floor((todayProteins / (userData && userData.weight)) * 100), 100)}%
-                  </CircularProgressLabel>
-                </CircularProgress>
-                {Math.min(Math.floor((todayProteins / (userData && userData.weight)) * 100), 100) === 100 ? (
-                  <Text fontSize="lg" fontWeight="bold"><span style={{ color: "green" }}>Osiągnięto</span></Text>
-                ) : (
-                  <Text fontSize="lg" fontWeight="bold">Nie osiągnięto</Text>
-                )}
-              </Box>
-
-              <Box sx={miniBox}>
-                <Text fontSize="lg" fontWeight="bold">Tłuszcze</Text>
-                <CircularProgress
-                  value={Math.floor((todayFats / (userData && userData.weight)) * 100)}
-                  size='170px'
-                  color="red"
-                  thickness='4px'
-                >
-                  <CircularProgressLabel>
-                    Cel <br></br>
-                    {Math.min(Math.floor((todayFats / (userData && userData.weight)) * 100), 100)}%
-                  </CircularProgressLabel>
-                </CircularProgress>
-                {Math.min(Math.floor((todayFats / (userData && userData.weight)) * 100), 100) === 100 ? (
-                  <Text fontSize="lg" fontWeight="bold"><span style={{ color: "green" }}>Osiągnięto</span></Text>
-                ) : (
-                  <Text fontSize="lg" fontWeight="bold">Nie osiągnięto</Text>
-                )}
-              </Box>
-
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="waga" stroke="#8884d8" fill="light_blue" />
+                </AreaChart>
+              </ResponsiveContainer>
             </Flex>
-          </Box>
-        </SimpleGrid>
-      </Container>
-    </div>
+          </SimpleGrid>
+        </Container>
+
+      </div>
   )
 }
