@@ -62,6 +62,7 @@ CREATE TABLE eaten_meals
     date    DATE NOT NULL,
     user_id INT       NOT NULL,
     meal_id INT       NOT NULL,
+    eaten_weight INT   NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (meal_id) REFERENCES meals (id)
 );

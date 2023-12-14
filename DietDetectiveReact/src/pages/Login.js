@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, {useContext, useState} from 'react';
 import {
     Box,
     Heading,
@@ -54,7 +54,7 @@ const linkStyles = {
 export default function Login() {
     const { setAuth } = useContext(AuthContext);
     const navigate = useNavigate();
-
+    const [loginError, setLoginError] = useState(false);
     const validationSchema = Yup.object().shape({
         email: Yup.string().required('Email jest wymagany').email('Nieprawidłowy format email'),
         password: Yup.string()
@@ -70,6 +70,7 @@ export default function Login() {
         },
         validationSchema,
         onSubmit: (values, { setSubmitting, setErrors }) => {
+            setLoginError(false);
             login(values)
                 .then((response) => {
 
@@ -83,7 +84,8 @@ export default function Login() {
                 })
                 .catch((error) => {
                     setSubmitting(false);
-                    setErrors({ login: 'Nieprawidłowy email lub hasło' }); // Ustawienie błędu niestandardowego
+                    setLoginError(true);
+                    setErrors({ login: 'Nieprawidłowy email lub hasło' });
                 });
         },
     });
@@ -133,7 +135,12 @@ export default function Login() {
                 </FormControl>
 
 
-
+                {loginError && (
+                    <Alert status="error" variant="subtle" mb={4}>
+                        <AlertIcon />
+                        <AlertDescription>Nieprawidłowe dane logowania. Sprawdź poprawność adresu email lub hasła</AlertDescription>
+                    </Alert>
+                )}
                 <Button type="submit" colorScheme="messenger" size="md" w="full" md="2" isLoading={formik.isSubmitting}>
                     Zaloguj się
                 </Button>

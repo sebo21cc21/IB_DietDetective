@@ -6,21 +6,17 @@ import {
   Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader,
   ModalOverlay
 } from '@chakra-ui/react'
+import { useToast } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react'
 import { Box, SimpleGrid, Text, Image } from '@chakra-ui/react';
-import {getCurrentUser, getUserWeight, handleGoal, handleSetTargetWeight, handleSetWeight} from '../util/APIUtils';
-export function calculateBMR(gender, weight, height, age) {
-  console.log(gender,weight,height,age)
-  let BMR = 0;
-
-  if (gender === 'M' || gender === 'Mężczyzna' || gender === 'Mezczyzna' || gender === 'Chlopak'){
-    BMR = Math.floor(66 + (13.7 * weight) + (5 * height) - (6.8 * age));
-  } else if (gender === 'K' || gender === 'D' || gender === 'Kobieta' || gender === 'Dziewczyna'){
-    BMR = Math.floor(655 + (9.6 * weight) + (1.8 * height) - (4.7 * age));
-  }
-
-  return BMR;
-}
+import {
+  getCurrentUser,
+  getUserSummary,
+  getUserWeight,
+  handleGoal,
+  handleSetTargetWeight,
+  handleSetWeight
+} from '../util/APIUtils';
 export function determineGoal(weight, estimatedWeight) {
   if (weight > estimatedWeight) {
     return "Zrzuć wagę";
@@ -35,7 +31,17 @@ export function calculateAge(dateOfBirth) {
   const currentDate = new Date();
   return currentDate.getFullYear() - birthDate.getFullYear();
 }
+export function calculateBMR(gender, weight, height, age) {
+  let BMR = 0;
 
+  if (gender === 'M' || gender === 'Mężczyzna' || gender === 'Mezczyzna' || gender === 'Chlopak'){
+    BMR = Math.floor(66 + (13.7 * weight) + (5 * height) - (6.8 * age));
+  } else if (gender === 'K' || gender === 'D' || gender === 'Kobieta' || gender === 'Dziewczyna'){
+    BMR = Math.floor(655 + (9.6 * weight) + (1.8 * height) - (4.7 * age));
+  }
+
+  return BMR;
+}
 export default function Account() {
   const [user, setUser] = useState(null);
   const [weight, setWeight] = useState({weight: null});
@@ -44,6 +50,8 @@ export default function Account() {
   const [isTargetModalOpen, setIsTargetModalOpen] = useState(false);
   const [newTargetWeight, setNewTargetWeight] = useState('');
   const [goal, setGoal] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const toast = useToast();
   const FirstBox = {
     h: "200px",
     color: "white",
@@ -53,14 +61,14 @@ export default function Account() {
   }
 
   const SecondBox = {
-    h: "300px",
+    h: "350px",
     color: "white",
     borderRadius: "lg",
-    p: "80px",
+    p: "100px",
     textAlign: "center"
   }
   const ThirdBox = {
-    h: "300px",
+    h: "350px",
     color: "white",
     borderRadius: "lg",
     p: "40px",
@@ -73,7 +81,6 @@ export default function Account() {
     getCurrentUser()
         .then(response => {
           setUser(response.data);
-          console.log(response.data);
         })
         .catch(error => {
           console.error('Błąd podczas pobierania danych użytkownika', error);
@@ -84,8 +91,21 @@ export default function Account() {
   const fetchUserWeight = () => {
     getUserWeight()
         .then(response => {
-          setWeight(response.data[0]);
-          console.log(response.data[0]);
+          if (response && response.data && response.data.length > 0) {
+            setWeight(response.data[response.data.length - 1]);
+          } else {
+            console.error("Brak danych lub pusta tablica w odpowiedzi.");
+          }
+        })
+        .catch(error => {
+          console.error('Błąd podczas pobierania danych użytkownika', error);
+        });
+  };
+
+  const fetchSummarData = async () => {
+    getUserSummary()
+        .then(response => {
+          setSummary(response.data);
         })
         .catch(error => {
           console.error('Błąd podczas pobierania danych użytkownika', error);
@@ -95,70 +115,90 @@ export default function Account() {
     let weightRequest = {
       weight: newWeight
     };
-    console.log(weightRequest);
-    await handleSetWeight(weightRequest);
-    console.log(goal);
-    setWeight({ weight: newWeight });
-    await handleGoal({goal: determineGoal(newWeight, newTargetWeight)});
-    setIsModalOpen(false);
+    try {
+      await handleSetWeight(weightRequest);
+      setWeight({ weight: newWeight });
+      setSummary({ todayWeight: newWeight });
+      await handleGoal({goal: determineGoal(newWeight, newTargetWeight)});
+      setIsModalOpen(false);
+      await fetchSummarData();
+      toast({
+        title: 'Pomyślnie zmieniono wagę',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+        position: "top"
+      });
+    } catch (error) {
+      console.error('Nie udało się zaktualizować wagi', error);
+    }
   };
+
   useEffect(() => {
     fetchUserData();
     fetchUserWeight();
+    fetchSummarData();
   }, []);
 
   const handleTargetWeightChange = async () => {
     let requestBody = {
       targetWeight: newTargetWeight
     };
-    console.log(requestBody);
-    setUser(prevUser => ({ ...prevUser, targetWeight: newTargetWeight }));
-    await handleGoal({goal: determineGoal(newWeight, newTargetWeight)});
-    await handleSetTargetWeight(requestBody);
-    setIsTargetModalOpen(false);
+    try {
+      await handleSetTargetWeight(requestBody);
+      setUser(prevUser => ({ ...prevUser, targetWeight: newTargetWeight }));
+      await handleGoal({goal: determineGoal(newWeight, newTargetWeight)});
+      setIsTargetModalOpen(false);
+      toast({
+        title: 'Pomyślnie zmieniono wagę docelową',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+        position: "top"
+      });
+    } catch (error) {
+      console.error('Nie udało się zaktualizować wagi docelowej', error);
+    }
   };
 
   return (
       <div className="App">
         <Container as="section" maxWidth={"1x1"} py="10px">
-          <SimpleGrid spacing={10} minChildWidth="250px">
+          <SimpleGrid spacing={10} minChildWidth="300px">
             <Box sx={FirstBox} bgImage="url('img/account.png')" backgroundSize='cover'>
-              <Text fontSize="xl" fontWeight="bold">Zapotrzebowanie</Text>
-              <Text>{user ? `${calculateBMR(user.sex, weight.weight, user.height, calculateAge(user.birthDate))} kcal` : ''}</Text>
+              <Text fontSize={{ base: "lg", md: "xl" }}fontWeight="bold">Zapotrzebowanie</Text>
+              <Text>{summary ? summary.caloriesDemand : ''} kcal</Text>
             </Box>
           </SimpleGrid>
         </Container>
 
         <Container as="section" maxWidth={"2x1"} py="20px">
-          <SimpleGrid spacing={10} minChildWidth="10px">
+          <SimpleGrid spacing={10} minChildWidth="300px">
             <Box sx={SecondBox} bgImage="url('img/account2.png')" backgroundSize='cover'>
 
-                <Text fontSize="xx-large" fontWeight="bold">{user ? `${user.firstName} ${user.lastName}` : ''}</Text>
+                <Text fontSize={{ base: "md", md: "xx-large" }} fontWeight="bold">{user ? `${user.firstName} ${user.lastName}` : ''}</Text>
 
-                <Text>
+                <Text fontSize={{ base: "sm", md: "md" }}>
                   <span style={{ color: "#A0AEC0" }}>Miło Cię znów widzieć!<br />
                 Czy masz jakieś pytania?</span>
                 </Text>
 
             </Box>
 
-            <Box sx={ThirdBox} width="200%" bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
-              <Text fontSize="xl" fontWeight="bold">Informator o profilu</Text>
+            <Box sx={ThirdBox} width={["100%", "100%", "100%","100%",  "210%","210%"]} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
+              <Text fontSize={["md", "lg", "xl"]} fontWeight="bold">Informator o profilu</Text>
               <Flex justifyContent={"center"}>
                 <Box letterSpacing='wide' mt='8'>
-                  <Text fontSize="xl">Imię i nazwisko: {user ? `${user.firstName} ${user.lastName}` : ''}</Text>
-                  <Text fontSize="xl">Email: {user ? user.email : ''}</Text>
-                  <Text fontSize="xl">
-                    {user && weight ? determineGoal(weight.weight, user.targetWeight) : ''}
-                  </Text>
-                  <Text fontSize="xl">Płeć: {user ? user.sex : ''}</Text>
+                  <Text fontSize={["2xs", "xs", "xs", "md", "md", "xl"]} >Imię i nazwisko: {user ? `${user.firstName} ${user.lastName}` : ''}</Text>
+                  <Text fontSize={["2xs", "xs", "xs", "md", "md", "xl"]} >Email: {user ? user.email : ''}</Text>
+                  <Text fontSize={["2xs", "xs", "xs", "md", "md", "xl"]} >Cel: {user && weight ? determineGoal(weight.weight, user.targetWeight) : ''}</Text>
+                  <Text fontSize={["2xs", "xs", "xs", "md", "md", "xl"]} >Płeć biologiczna: {user ? user.sex : ''}</Text>
                 </Box>
-
                 <Box letterSpacing='wide' ml='10' mt='8'>
-                  <Text fontSize="xl">Wiek: {user ? calculateAge(user.birthDate) : ''} lata</Text>
-                  <Text fontSize="xl">Wzrost {user ? user.height : ''} cm:</Text>
-                  <Text fontSize="xl">Waga: {weight ? weight.weight : ''} kg</Text>
-                  <Text fontSize="xl">Waga docelowa: {user ? user.targetWeight : ''} kg</Text>
+                  <Text fontSize={["2xs", "xs", "xs", "md", "md", "xl"]} >Wiek: {user ? calculateAge(user.birthDate) : ''} lata</Text>
+                  <Text fontSize={["2xs", "xs", "xs", "md", "md", "xl"]} >Wzrost: {user ? user.height : ''} cm</Text>
+                  <Text fontSize={["2xs", "xs", "xs", "md", "md", "xl"]} >Waga: {summary ? summary.todayWeight : ''} kg</Text>
+                  <Text fontSize={["2xs", "xs", "xs", "md", "md", "xl"]} >Waga docelowa: {user ? user.targetWeight : ''} kg</Text>
                 </Box>
                 <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} isCentered>
                   <ModalOverlay />
@@ -185,8 +225,8 @@ export default function Account() {
 
                 <Modal isOpen={isTargetModalOpen} onClose={() => setIsTargetModalOpen(false)} isCentered>
                   <ModalOverlay />
-                  <ModalContent mx="auto" my="auto" style={{ transform: 'translate(-50%, -50%)' }}>
-                    <ModalHeader>Zmień wagę docelową</ModalHeader>
+                  <ModalContent mx="auto" my="auto" style={{ transform: 'translate(-50%, -50%)' }} >
+                    <ModalHeader >Zmień wagę docelową</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                       <Input
@@ -207,8 +247,8 @@ export default function Account() {
                 </Modal>
               </Flex>
               <Flex justifyContent={"center"} mt={5} >
-                <Button mr={3} colorScheme="messenger" onClick={() => setIsModalOpen(true)}>Zmień wagę</Button>
-                <Button colorScheme="teal" onClick={() => setIsTargetModalOpen(true)}>Zmień wagę docelową</Button>
+                <Button size={["xs", "xs", "xs", "md", "md", "lg"]} mr={3} colorScheme="messenger" onClick={() => setIsModalOpen(true)}>Zmień wagę</Button>
+                <Button size={["xs", "xs", "xs", "md", "md", "lg"]} colorScheme="teal" onClick={() => setIsTargetModalOpen(true)}>Zmień wagę docelową</Button>
               </Flex>
               </Box>
             <Box></Box>

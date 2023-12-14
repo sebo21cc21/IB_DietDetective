@@ -5,11 +5,14 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.sql.Date;
 import java.util.List;
+import java.util.Optional;
 
 public interface EatenMealRepository extends JpaRepository<EatenMeal, Integer> {
     List<EatenMeal> findAllByUserEmailAndDate(String email, Date date);
 
     List<EatenMeal> findAllByUserEmailAndDateAfter(String email, Date date);
+
+    Optional<EatenMeal> findAllByMealIdAndUserId(Integer mealId, Integer userId);
 
     @Query("SELECT NEW com.example.dietdetectivespring.eatenmeals.CaloriesPerDayDto(SUM(em.meal.calories), em.date) " +
             "FROM EatenMeal em " +

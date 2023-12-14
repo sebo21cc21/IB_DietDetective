@@ -27,6 +27,9 @@ public class EatenMeal {
     @Column(name = "date", nullable = false)
     private Date date;
 
+    @Column(name="eaten_weight", nullable = false)
+    private Integer eatenWeight;
+
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "user_id", nullable = false)

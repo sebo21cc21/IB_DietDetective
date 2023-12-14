@@ -39,7 +39,21 @@ export function autoLogin() {
         },
     });
 }
+export function handleDeleteEatenMeal(mealId) {
+    const token = localStorage.getItem(ACCESS_TOKEN);
 
+    if (!token) {
+        return Promise.reject("No access token set.");
+    }
+
+    const config = {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    };
+    return axios.delete(`${API_BASE_URL}/eaten-meals/${mealId}`, config);
+}
 export function handleSetWeight(requestBody) {
     const token = localStorage.getItem(ACCESS_TOKEN);
 
@@ -99,6 +113,19 @@ export function handleWater(requestBody) {
     return axios.post(`${API_BASE_URL}/water`, requestBody, config);
 
 }
+export function handleEaten(requestBody) {
+
+    const token = localStorage.getItem(ACCESS_TOKEN);
+
+    const config = {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    };
+    return axios.post(`${API_BASE_URL}/eaten-meals`, requestBody, config);
+
+}
 
 export function handleGoal(requestBody) {
 
@@ -115,7 +142,6 @@ export function handleGoal(requestBody) {
 }
 export function getWater() {
     const token = localStorage.getItem(ACCESS_TOKEN);
-    console.log(token);
     return axios.get(`${API_BASE_URL}/water`, {
         headers: {
             'Content-Type': 'application/json',
@@ -124,9 +150,27 @@ export function getWater() {
     });
 }
 
+export function getEaten() {
+    const token = localStorage.getItem(ACCESS_TOKEN);
+    return axios.get(`${API_BASE_URL}/eaten-meals/today`, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+}
+
+export function getEatenSummary() {
+    const token = localStorage.getItem(ACCESS_TOKEN);
+    return axios.get(`${API_BASE_URL}/eaten-meals/summary`, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+}
 export function getWaterToday() {
     const token = localStorage.getItem(ACCESS_TOKEN);
-    console.log(token);
     return axios.get(`${API_BASE_URL}/water/today`, {
         headers: {
             'Content-Type': 'application/json',
@@ -137,7 +181,6 @@ export function getWaterToday() {
 
 export function getCurrentUser() {
     const token = localStorage.getItem(ACCESS_TOKEN);
-    console.log(token);
     return axios.get(`${API_BASE_URL}/users/me`, {
         headers: {
             'Content-Type': 'application/json',
@@ -148,7 +191,6 @@ export function getCurrentUser() {
 
 export function getUserSummary() {
     const token = localStorage.getItem(ACCESS_TOKEN);
-    console.log(token);
     return axios.get(`${API_BASE_URL}/users/summary`, {
         headers: {
             'Content-Type': 'application/json',
@@ -159,7 +201,6 @@ export function getUserSummary() {
 
 export function getMeals(id) {
     const token = localStorage.getItem(ACCESS_TOKEN);
-    console.log(token);
     return axios.get(`${API_BASE_URL}/meals/category/${id}`, {
         headers: {
             'Content-Type': 'application/json',
@@ -170,7 +211,6 @@ export function getMeals(id) {
 
 export function getMeal(id) {
     const token = localStorage.getItem(ACCESS_TOKEN);
-    console.log(token);
     return axios.get(`${API_BASE_URL}/meals/${id}`, {
         headers: {
             'Content-Type': 'application/json',
@@ -180,7 +220,6 @@ export function getMeal(id) {
 }
 export function getCategoryName() {
     const token = localStorage.getItem(ACCESS_TOKEN);
-    console.log(token);
     return axios.get(`${API_BASE_URL}/categories`, {
         headers: {
             'Content-Type': 'application/json',
@@ -193,7 +232,6 @@ export function getCategoryName() {
 
 export function getUserWeight() {
     const token = localStorage.getItem(ACCESS_TOKEN);
-    console.log(token);
     return axios.get(`${API_BASE_URL}/weight`, {
         headers: {
             'Content-Type': 'application/json',

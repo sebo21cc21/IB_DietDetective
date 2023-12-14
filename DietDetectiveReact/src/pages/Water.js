@@ -12,7 +12,7 @@ import { SlCup } from "react-icons/sl";
 import { BsCupStraw } from "react-icons/bs";
 import {getUserWeight, getWater, getWaterToday, handleWater} from "../util/APIUtils";
 import {format, subDays, isAfter, addDays, startOfWeek, isSameDay} from 'date-fns';
-
+import { useToast } from '@chakra-ui/react';
 import {
   BarChart,
   Bar,
@@ -30,23 +30,34 @@ export default function Water() {
   const [waterData, setWaterData] = useState([]);
   const [waterToday, setWaterToday] = useState({});
   const [showInfo, setShowInfo] = useState(false);
+  const toast = useToast();
   const setNewWater = (volume) => {
-    getWater()
-        .then(response => {
-          setWaterData(response.data);
+    const newWaterVolume = waterVolume + volume;
+    setWaterVolume(newWaterVolume);
+
+    handleWater({ volume })
+        .then(() => {
+          fetchWater();
         })
-    setWaterVolume(volume);
-    handleWater({ volume });
-    getWater()
-        .then(response => {
-          setWaterData(response.data);
-        })
+        .catch(error => {
+          setWaterVolume(waterVolume);
+          console.error('Nie udało się zaktualizować nawodnienia', error);
+          toast({
+            title: 'Error',
+            description: 'Nie udało się zaktualizować nawodnienia, odśwież stronę i spróbuj ponownie.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+            position: "top-right"
+          });
+        });
+
+    showNotification(volume, newWaterVolume);
   };
   const fetchWater = () => {
     getWater()
         .then(response => {
           setWaterData(response.data);
-          console.log(response.data);
         })
         .catch(error => {
           console.error('Błąd podczas pobierania danych użytkownika', error);
@@ -75,7 +86,9 @@ export default function Water() {
         nawodnienie: item.volume
       }))
       .filter(item => isAfter(new Date(item.date), subDays(new Date(), 7)))
+      .sort((a, b) => new Date(a.date) - new Date(b.date)) // Sort by date
       .slice(-7);
+
   const getPath = (x, y, width, height) => {
     return `M${x},${y + height}C${x + width / 3},${y + height} ${x + width / 2},${y + height / 3}
   ${x + width / 2}, ${y}
@@ -99,22 +112,49 @@ export default function Water() {
     });
 
     return (
-        <Flex justifyContent="space-between" p="4" borderRadius="md">
-          {goalAchievement.map((achieved, index) => (
-              <Box textAlign="center">
-                <Text fontSize="lg">{daysOfWeek[index]}</Text>
-                <Icon as={achieved ? FaPlus : FaMinus} color={achieved ? 'green.500' : 'red.500'} />
-              </Box>
-          ))}
+        <Flex direction="column" alignItems="center" p="4" borderRadius="md">
+          <SimpleGrid columns={3} spacing={3} width="100%" mb={3}>
+            {goalAchievement.slice(0, 3).map((achieved, index) => (
+                <Box textAlign="center" key={daysOfWeek[index]}>
+                  <Text fontSize ={{ base: 'xx-small', md: 'lg' }}>{daysOfWeek[index]}</Text>
+                  <Icon as={achieved ? FaPlus : FaMinus} color={achieved ? 'green.500' : 'red.500'} />
+                </Box>
+            ))}
+          </SimpleGrid>
+          <SimpleGrid columns={3} spacing={3} width="100%"  mb={3}>
+            {goalAchievement.slice(3, 6).map((achieved, index) => (
+                <Box textAlign="center" key={daysOfWeek[index + 3]}>
+                  <Text fontSize ={{ base: 'xx-small', md: 'lg' }}>{daysOfWeek[index + 3]}</Text>
+                  <Icon as={achieved ? FaPlus : FaMinus} color={achieved ? 'green.500' : 'red.500'} />
+                </Box>
+            ))}
+          </SimpleGrid>
+          <SimpleGrid columns={3} spacing={3} width="100%">
+            <Box textAlign="center" /> {/* Empty box for spacing */}
+            <Box textAlign="center" key={daysOfWeek[6]}>
+              <Text fontSize ={{ base: 'xx-small', md: 'lg' }}>{daysOfWeek[6]}</Text>
+              <Icon as={goalAchievement[6] ? FaPlus : FaMinus} color={goalAchievement[6] ? 'green.500' : 'red.500'} />
+            </Box>
+            <Box textAlign="center" /> {/* Empty box for spacing */}
+          </SimpleGrid>
         </Flex>
     );
   };
 
+  const showNotification = (volume, newWater) => {
+    toast({
+      title: volume >= 0 ? 'Dodano' : 'Usunięto',
+      description: `${Math.abs(volume)} ml, aktualna zmiana nawodnienia: ${newWater} ml`,
+      status: volume >= 0 ? 'success' : 'error',
+      duration: 5000,
+      isClosable: true,
+      position: "top-right"
+    });
+  };
   const fetchWaterToday = () => {
     getWaterToday()
         .then(response => {
           setWaterToday(response.data);
-          console.log(response.data);
         })
         .catch(error => {
           console.error('Błąd podczas pobierania danych użytkownika', error);
@@ -124,10 +164,6 @@ export default function Water() {
   useEffect(() => {
     fetchWaterToday();
     fetchWater();
-    // const interval = setInterval(() => {
-    //   fetchWater();
-    // }, 5000);
-    // return () => clearInterval(interval);
   }, []);
   const FirstBox = {
     bgGradient: "linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))",
@@ -149,7 +185,7 @@ export default function Water() {
 
   const CalendarBox = {
     bgGradient: "linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))",
-    h: "250px",
+    h: "400px",
     color: "white",
     borderRadius: "lg",
     p: "20px",
@@ -306,7 +342,7 @@ export default function Water() {
         </SimpleGrid>
 
       </Container>
-      <Container maxWidth={"3x1"} py="10px">
+      <Container maxWidth={"3x1"} py="10px" mb={7}>
         <SimpleGrid spacing={10} minChildWidth="250px">
           <Box sx={PlotBox}>
             <ResponsiveContainer width="100%" height="100%">
@@ -321,8 +357,8 @@ export default function Water() {
               </BarChart>
             </ResponsiveContainer>
         </Box>
-          <Box sx={CalendarBox} mt={16}>
-            <Text fontSize="x-large" fontWeight="bold" mb={4}>
+          <Box sx={CalendarBox}>
+            <Text fontSize ={{ base: 'md', md: 'xl' }} fontWeight="bold" mb={4}>
               Dni odpowiedniego nawodnienia w tygodniu
               <IconButton
                   ml={3}
@@ -332,13 +368,13 @@ export default function Water() {
                   size="sm"
                   colorScheme="blue"
               />
-              {showInfo && (
-                  <span style={{fontSize: 'xx-small', verticalAlign: 'super', fontWeight: 'normal'}}> *odpowiednie nawodnienie przyjmuje większe niż 2l</span>
-              )}
             </Text>
+            {showInfo && (
+                <span style={{fontSize: 'xx-small', verticalAlign: 'super', fontWeight: 'normal'}}> *zalecane dzienne nawodnienie >2l</span>
+            )}
 
             <WeeklyGoal waterData={waterData} />
-            <Text fontSize="lg" fontWeight="bold" >
+            <Text fontSize ={{ base: 'xx-small', md: 'lg' }} fontWeight="bold" >
               {calculateHydrationDays() !== 0 ? `Dni z rzędu ${calculateHydrationDays()}🔥` : ""}
             </Text>
 

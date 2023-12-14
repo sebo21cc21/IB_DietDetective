@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EatenMealRequest {
-    Integer mealId;
+    private Integer mealId;
+    private Integer eatenWeight;
 }

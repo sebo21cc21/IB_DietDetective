@@ -28,7 +28,7 @@ public class EatenMealController {
     }
 
     @GetMapping("/today")
-    public ResponseEntity<List<Meal>> getEatenMealsForToday(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<List<EatenMeal>> getEatenMealsForToday(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(eatenMealsService.getEatenMealsWithoutDateForToday(userDetails.getUsername()));
     }
 
@@ -36,6 +36,16 @@ public class EatenMealController {
     @GetMapping("/summary")
     public ResponseEntity<EatenMealsSummaryResponse> getMealsSummary(@AuthenticationPrincipal UserDetails userDetails) {
         return new ResponseEntity<>(eatenMealsService.getMealsSummary(userDetails.getUsername()), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteEatenMeal(@PathVariable Integer id, @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            eatenMealsService.deleteEatenMeal(id, userDetails.getUsername());
+            return ResponseEntity.ok().build();
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }

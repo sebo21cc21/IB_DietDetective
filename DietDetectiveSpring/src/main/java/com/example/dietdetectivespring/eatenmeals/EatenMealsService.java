@@ -8,11 +8,13 @@ import com.example.dietdetectivespring.utils.BMRCalculator;
 import com.example.dietdetectivespring.weightrecords.WeightRecord;
 import com.example.dietdetectivespring.weightrecords.WeightRecordService;
 import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +29,17 @@ public class EatenMealsService {
         User userByEmail = userRepository.findByEmail(email).orElseThrow(EntityExistsException::new);
         Meal mealById = mealService.getMealById(eatenMealRequest.getMealId());
 
+        Optional<EatenMeal> dbEatenMeal = eatenMealRepository.findAllByMealIdAndUserId(mealById.getId(), userByEmail.getId());
+        if (dbEatenMeal.isPresent()) {
+            EatenMeal eatenMeal = dbEatenMeal.get();
+            eatenMeal.setEatenWeight(eatenMeal.getEatenWeight() + eatenMealRequest.getEatenWeight());
+            return eatenMealRepository.save(eatenMeal);
+        }
+
         EatenMeal eatenMeal = EatenMeal.builder()
+                .date(new Date(System.currentTimeMillis()))
                 .meal(mealById)
+                .eatenWeight(eatenMealRequest.getEatenWeight())
                 .user(userByEmail)
                 .build();
         return eatenMealRepository.save(eatenMeal);
@@ -38,9 +49,13 @@ public class EatenMealsService {
         return eatenMealRepository.findAllByUserEmailAndDate(email, new Date(System.currentTimeMillis()));
     }
 
-    public List<Meal> getEatenMealsWithoutDateForToday(String email) {
-        return getEatenMealsWithoutDate(getEatenMealsForToday(email));
+    public List<EatenMeal> getEatenMealsWithoutDateForToday(String email) {
+        return getEatenMealsForToday(email)
+                .stream()
+                .peek(eatenMeal -> eatenMeal.getMeal().multiplyProperties(eatenMeal.getEatenWeight() / 100F))
+                .toList();
     }
+
 
     public List<Meal> getEatenMealsWithoutDate(List<EatenMeal> eatenMeals) {
         return eatenMeals.stream()
@@ -96,6 +111,11 @@ public class EatenMealsService {
                 user.getBirthDate());
     }
 
+    public void deleteEatenMeal(Integer id, String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(EntityExistsException::new);
+        Optional<EatenMeal> eatenMeals = eatenMealRepository.findAllByMealIdAndUserId(id, user.getId());
+        eatenMealRepository.delete(eatenMeals.orElseThrow(EntityNotFoundException::new));
+    }
     public EatenMealsSummaryResponse getMealsSummary(String email) {
         List<EatenMeal> eatenMealsToday = eatenMealRepository.findAllByUserEmailAndDate(email, new Date(System.currentTimeMillis()));
 
@@ -109,4 +129,5 @@ public class EatenMealsService {
                 .proteinsConsumedToday(getProteinsConsumed(eatenMealsToday))
                 .build();
     }
+
 }

@@ -48,7 +48,7 @@ export default function Interview() {
 
     const { auth, setAuth } = React.useContext(AuthContext);
 
-    // Function to reset validation errors
+
     const resetValidationErrors = () => {
         setValidationErrors({});
     };
@@ -65,7 +65,7 @@ export default function Interview() {
             goal: goal,
         };
 
-        // Validation of data
+
         const errors = {};
 
         if (!requestBody.birthDate) {
@@ -91,7 +91,7 @@ export default function Interview() {
         if (!requestBody.goal) {
             errors.goal = "Pole wymagane";
         }
-        // Weight validation based on the goal
+
         switch (requestBody.goal) {
             case GoalEnum.UtrzymajWagę:
                 if (requestBody.weight !== requestBody.targetWeight) {
@@ -189,7 +189,7 @@ export default function Interview() {
 
             <FormControl id="height" mb={4}>
                 <FormLabel sx={formLabelStyles}>Wzrost</FormLabel>
-                <Input color="white" type="number" placeholder="Podaj swój wzrost" _placeholder={{ color: 'white' }} value={height} onChange={(e) => setHeight(e.target.value)} />
+                <Input color="white" type="number" placeholder="Podaj swój wzrost [cm]" _placeholder={{ color: 'white' }} value={height} onChange={(e) => setHeight(e.target.value)} />
                 {validationErrors.height && (
                     <Alert status="error">
                         <AlertIcon />
@@ -228,7 +228,7 @@ export default function Interview() {
 
             <FormControl id="weight" mb={4}>
                 <FormLabel sx={formLabelStyles}>Waga</FormLabel>
-                <Input color="white" type="number" placeholder="Podaj swoją wagę" _placeholder={{ color: 'white' }} value={weight} onChange={(e) => setWeight(e.target.value)} />
+                <Input color="white" type="number" placeholder="Podaj swoją wagę [kg]" _placeholder={{ color: 'white' }} value={weight} onChange={(e) => setWeight(e.target.value)} />
                 {validationErrors.weight && (
                     <Alert status="error">
                         <AlertIcon />
@@ -242,7 +242,7 @@ export default function Interview() {
                 <Input
                     color="white"
                     type="number"
-                    placeholder="Podaj wagę docelową"
+                    placeholder="Podaj wagę docelową [kg]"
                     _placeholder={{ color: 'white' }}
                     value={targetWeight}
                     onChange={(e) => setTargetWeight(e.target.value)}

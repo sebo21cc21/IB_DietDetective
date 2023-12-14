@@ -73,4 +73,11 @@ public class Meal {
     public int hashCode() {
         return getClass().hashCode();
     }
+
+    public void multiplyProperties(Float multiplier) {
+        calories = (int) (calories * multiplier);
+        proteins = proteins * multiplier;
+        carbohydrates = carbohydrates * multiplier;
+        fats = fats * multiplier;
+    }
 }

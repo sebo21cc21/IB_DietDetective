@@ -6,13 +6,14 @@ import { Box, Container, SimpleGrid, Text, Heading, IconButton, Flex, Button,
     Tr,
     Th,
     Td,
-    VStack} from '@chakra-ui/react';
+    VStack,
+    Image} from '@chakra-ui/react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { getMeal } from '../util/APIUtils';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export default function RecipesDetail() {
-    const { id } = useParams(); // Pobieranie `id` z URL
+    const { id } = useParams();
     const [meal, setMeal] = useState({});
     const navigate = useNavigate();
     const descriptionParagraphs = meal.longDescription?.includes('\\n')
@@ -21,7 +22,7 @@ export default function RecipesDetail() {
 
 
     const NutritionTable = () => (
-        <Table variant="simple" colorScheme="blue" width={"50%"}>
+        <Table className="responsive-table" variant="simple" color="white" width={"50%"}>
             <Thead>
                 <Tr>
                     <Th color={'white'}>Kaloryczność</Th>
@@ -34,12 +35,12 @@ export default function RecipesDetail() {
             </Thead>
             <Tbody>
                 <Tr>
-                    <Td>{parseInt((parseInt(meal.calories) * parseInt(meal.unit)) / 100)} kcal</Td>
-                    <Td>{meal.carbohydrates} g</Td>
-                    <Td>{meal.proteins} g</Td>
-                    <Td>{meal.fats} g</Td>
-                    <Td>{meal.unit}</Td>
-                    <Td>1 porcja</Td>
+                    <Td data-label="Kaloryczność">{parseInt((parseInt(meal.calories) * parseInt(meal.unit)) / 100)} kcal</Td>
+                    <Td data-label="Węglowodany">{meal.carbohydrates} g</Td>
+                    <Td data-label="Białka">{meal.proteins} g</Td>
+                    <Td data-label="Tłuszcze">{meal.fats} g</Td>
+                    <Td data-label="Masa">{meal.unit}</Td>
+                    <Td data-label="Ilość">1 porcja</Td>
                 </Tr>
             </Tbody>
         </Table>
@@ -52,7 +53,6 @@ export default function RecipesDetail() {
         getMeal(id)
             .then((response) => {
                 setMeal(response.data);
-                console.log(response.data);
             })
             .catch((error) => {
                 console.error('Błąd podczas pobierania danych użytkownika', error);
@@ -72,17 +72,17 @@ export default function RecipesDetail() {
     };
     return (
         <div className="App">
-            <Heading color="white">Na co masz ochotę?</Heading>
-            <Flex justifyContent="center">
-                <SimpleGrid spacing={10} justifyContent="center">
+            <Heading color="white" mb="5">Na co masz ochotę?</Heading>
+            <Flex justifyContent="center" >
+                <SimpleGrid spacing={10} justifyContent="center" mb="10">
                     <Box sx={FirstBox}>
                         <Flex justifyContent="center">
-                            <img
+                            <Image
                                 src={meal.image}
                                 alt={meal.name}
+                                maxWidth= {{ base: '50%', md: '25%' }}
                                 style={{
                                     height: 'auto',
-                                    maxWidth: '25%',
                                     borderRadius: '30%',
                                 }}
                             />
@@ -114,11 +114,10 @@ export default function RecipesDetail() {
                                 Powrót
                             </Button>
                         </VStack>
-
-
                     </Box>
                 </SimpleGrid>
             </Flex>
+
         </div>
     );
 }

@@ -35,3 +35,44 @@
     transform: rotate(360deg);
   }
 }
+/* Monitor */
+@media screen and (max-width: 600px) {
+
+  .responsive-table {
+    display: block;
+  }
+
+  .responsive-table thead {
+    display: none;
+  }
+
+  .responsive-table tr {
+    margin-bottom: 10px;
+    display: block;
+    border-bottom: 2px solid #ddd;
+  }
+
+  .responsive-table td {
+    display: block;
+    text-align: right;
+    font-size: 13px;
+    border-bottom: 1px dotted #ccc;
+  }
+
+
+  .responsive-table td:before {
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+
+  .responsive-table .add-to-eaten {
+    text-align: center;
+  }
+
+  .responsive-table .add-to-eaten button {
+    width: 100%;
+  }
+}

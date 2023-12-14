@@ -7,12 +7,15 @@ import {
   CircularProgressLabel,
   Flex,
   Image,
-  Button
+  Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Input, ModalFooter
 } from '@chakra-ui/react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import React, {useEffect, useState} from 'react'
-import {getCurrentUser, getUserSummary, getUserWeight} from "../util/APIUtils";
+import {getCurrentUser, getUserSummary, getUserWeight, handleGoal} from "../util/APIUtils";
 import {useNavigate} from "react-router-dom";
+import {ACCESS_TOKEN, API_BASE_URL} from "../constans";
+import axios from "axios";
+import {determineGoal} from "./Account";
 export function calculatePercentWeight(weight, estimatedWeight) {
   let percentWeight = 100 -(weight / estimatedWeight) * 100;
   if (percentWeight > 100) {
@@ -30,14 +33,28 @@ export function calculateWeightCircularPercent(weight, estimatedWeight) {
   let percentWeight;
   if (weight > estimatedWeight) {
     percentWeight = ((weight - estimatedWeight) / weight) * 100;
-    percentWeight = 100 - percentWeight; // This will give a value greater than 100 if the weight is above the target
+    percentWeight = 100 - percentWeight;
   } else {
     percentWeight = ((estimatedWeight - weight) / estimatedWeight) * 100;
-    percentWeight = 100 - percentWeight; // This will give a value less than 100 if the weight is below the target
+    percentWeight = 100 - percentWeight;
   }
   return Math.floor(percentWeight);
 }
+export function handleSetWeight(requestBody) {
+  const token = localStorage.getItem(ACCESS_TOKEN);
 
+  if (!token) {
+    return Promise.reject("No access token set.");
+  }
+
+  const config = {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  };
+  return axios.post(`${API_BASE_URL}/weight`, requestBody, config);
+}
 export function calculatePercentWater(weight, estimatedWeight) {
   let percentWeight = (weight / estimatedWeight) * 100;
   if (percentWeight > 100) {
@@ -54,6 +71,14 @@ export default function Monitor() {
   const [summary, setSummary] = useState(null);
   const [user, setUser] = useState(null);
   const [isIndeterminate, setIsIndeterminate] = useState(true);
+  const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
+  const [newWeight, setNewWeight] = useState('');
+  useEffect(() => {
+    if (summary && summary.todayWeight === 0) {
+      setIsWeightModalOpen(true);
+    }
+  }, [summary]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsIndeterminate(false);
@@ -73,16 +98,28 @@ export default function Monitor() {
   const weightValuePercent = summary && summary.todayWeight != null && summary.targetWeight != null
       ? `${calculateWeightCircularPercent(summary.todayWeight, summary.targetWeight)}`
       : '';
-  console.log(weightValuePercent)
   const fetchSummarData = async () => {
     getUserSummary()
         .then(response => {
           setSummary(response.data);
-          console.log(response.data);
         })
         .catch(error => {
           console.error('Błąd podczas pobierania danych użytkownika', error);
         });
+  };
+  const handleWeightChange = async () => {
+    let weightRequest = {
+      weight: newWeight
+    };
+
+    try {
+      await handleSetWeight(weightRequest);
+      setNewWeight('');
+      setIsWeightModalOpen(false);
+      await fetchData();
+    } catch (error) {
+      console.error('Error updating weight', error);
+    }
   };
   const currentDate = new Date().toLocaleDateString('pl-PL');
   const fetchUserWeight = () => {
@@ -109,11 +146,13 @@ export default function Monitor() {
     getCurrentUser()
         .then(response => {
           setUser(response.data);
-          console.log(response.data);
         })
         .catch(error => {
           console.error('Błąd podczas pobierania danych użytkownika', error);
         });
+  };
+  const fetchData = async () => {
+    await Promise.all([fetchSummarData(), fetchUserWeight(), fetchUserData()]);
   };
 
   useEffect(() => {
@@ -163,7 +202,7 @@ export default function Monitor() {
   }
   return (
       <div className="App">
-        <Container as="section" maxWidth={"4x1"} py="10px">
+        <Container as="section" maxWidth={"4x1"} py="10px" ml ={{ base: '5', md: '0' }}>
           <SimpleGrid spacing={10} minChildWidth="250px">
             <Box sx={FirstBox}>
               <Text fontSize="xl" fontWeight="bold">Zapotrzebowanie</Text>
@@ -189,7 +228,7 @@ export default function Monitor() {
           </SimpleGrid>
         </Container>
 
-        <Container as="section" maxWidth={"3x1"} py="10px">
+        <Container as="section" maxWidth={"3x1"} py="10px" ml ={{ base: '5', md: '0' }}>
           <SimpleGrid spacing={10} minChildWidth="250px">
             <Box sx={SecondBox} bgImage="url('img/medusa.png')" backgroundSize='cover'>
               <Text>
@@ -217,7 +256,7 @@ export default function Monitor() {
                       isIndeterminate={isIndeterminate}
                       value={!isIndeterminate ? parseInt(weightValuePercent) : undefined}
                       color='green.300'
-                      size='150px'
+                      size={{ base: '100px', md: '150px' }}
                       thickness='14px'
                   >
                     <CircularProgressLabel>
@@ -227,13 +266,32 @@ export default function Monitor() {
                 </Flex>
               </Flex>
             </Box>
-
+            <Modal isOpen={isWeightModalOpen} onClose={() => setIsWeightModalOpen(false)}>
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Proszę uzupełniej dzisiejszą wagę</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  <Input
+                      placeholder="Wprowadź swoją wagę w kg"
+                      type="number"
+                      value={newWeight}
+                      onChange={(e) => setNewWeight(e.target.value)}
+                  />
+                </ModalBody>
+                <ModalFooter>
+                  <Button colorScheme="blue" onClick={handleWeightChange}>
+                    Zapisz
+                  </Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
             <Box sx={SecondBox} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
               <Flex justifyContent={"space-between"}>
               <Text fontSize="xl" fontWeight="bold">Spożycie wody</Text>
               <Button
                   size='sm'
-                  colorScheme="teal" // Wybierz odpowiedni kolor
+                  colorScheme="teal"
                   onClick={() => {navigate('/water')}}
               >
                 Edytuj
@@ -255,8 +313,8 @@ export default function Monitor() {
                 <Box sx={{ justifyContent: 'right' }} ml = {30}>
                   <CircularProgress
                       isIndeterminate={isIndeterminate}
-                      value={!isIndeterminate ?  waterValue : undefined}
-                      size='150px'
+                      value={!isIndeterminate ? waterValue : undefined}
+                      size={{ base: '100px', md: '150px' }}
                       thickness='7'
                   >
                     <CircularProgressLabel>
@@ -270,7 +328,7 @@ export default function Monitor() {
           </SimpleGrid>
         </Container>
 
-        <Container as="section" maxWidth={"2x1"} py="10px">
+        <Container as="section" maxWidth={"2x1"} py="10px" ml ={{ base: '5', md: '0' }}>
           <SimpleGrid spacing={10} minChildWidth="250px">
             <Flex sx={ThirdBox} flexDirection="column" alignItems="center">
               <Text fontSize="xx-large" >Waga</Text>

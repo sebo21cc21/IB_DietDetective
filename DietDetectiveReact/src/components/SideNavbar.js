@@ -1,8 +1,8 @@
 import React, {useContext} from 'react';
 import {NavLink} from 'react-router-dom';
-import {GiHeartBeats, GiHomeGarage} from 'react-icons/gi';
-import {FaBeer, FaSignInAlt, FaUser, FaUserPlus, FaUtensils} from 'react-icons/fa';
-import {Box, Flex, Heading, List, ListItem} from '@chakra-ui/react';
+import {GiHeartBeats, GiHotMeal, GiMeal} from 'react-icons/gi';
+import {FaBeer, FaSignInAlt, FaUser, FaUserPlus, FaUtensils, FaHome} from 'react-icons/fa';
+import {Box, Flex, Heading, Image, List, ListItem} from '@chakra-ui/react';
 import AuthContext from "../context/AuthProvider";
 
 
@@ -27,7 +27,7 @@ export default function SideNavbar() {
     return (
         <List color="white">
             <Flex align="center">
-                <img src="img/logo.png" alt="logo" style={{width: "45px", height: "45px"}}/>
+                <Image src="img/logo.png" alt="logo" style={{width: "45px", height: "45px"}}/>
                 <Heading size="md" noOfLines={1} as="h1">
                     DietDetective
                 </Heading>
@@ -37,7 +37,7 @@ export default function SideNavbar() {
                 <NavLink to="/">
                     <Flex align="center">
                         <Box sx={iconBox}>
-                            <GiHomeGarage size={20}/>
+                            <FaHome size={20}/>
                         </Box>
                         Strona Główna
                     </Flex>
@@ -59,7 +59,7 @@ export default function SideNavbar() {
                         <NavLink to="/meal">
                             <Flex align="center">
                                 <Box sx={iconBox}>
-                                    <FaBeer size={20}/>
+                                    <GiHotMeal size={20}/>
                                 </Box>
                                 Posiłki
                             </Flex>

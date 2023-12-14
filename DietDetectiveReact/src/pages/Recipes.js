@@ -34,13 +34,14 @@ export default function Recipes() {
   };
   const itemsPerPage = 6;
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [totalPages, setTotalPages] = useState(6);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
 
   const changePage = (newPage) => {
     if (newPage >= 1 && newPage <= Math.ceil(meals.length / itemsPerPage)) {
       setCurrentPage(newPage);
+      setTotalPages(Math.ceil(meals.length / itemsPerPage));
     }
   };
 
@@ -48,7 +49,6 @@ export default function Recipes() {
     getMeals(id)
         .then((response) => {
           setMeals(response.data);
-          console.log(response.data);
         })
         .catch((error) => {
           console.error('Błąd podczas pobierania danych użytkownika', error);
@@ -59,7 +59,6 @@ export default function Recipes() {
     getMeal(id)
         .then((response) => {
           setMeal(response.data);
-          console.log(response.data);
         })
         .catch((error) => {
           console.error('Błąd podczas pobierania danych użytkownika', error);
@@ -74,8 +73,8 @@ export default function Recipes() {
   return (
       <div className="App">
         <Heading color="white">Na co masz ochotę?</Heading>
-        <Container maxWidth={'3x1'} py="10px">
-          <SimpleGrid spacing={10} ml={55} minChildWidth="300px">
+        <Container maxWidth={'3x1'} py="10px" >
+          <SimpleGrid spacing={10} ml ={{ base: '0', md: '55' }} minChildWidth="300px">
             {meals && meals.slice(startIndex, endIndex).map((meal, index) => (
                 <Box key={meal.id} sx={FirstBox}>
                   <Flex justifyContent="center">
@@ -109,7 +108,8 @@ export default function Recipes() {
           </SimpleGrid>
         </Container>
 
-        <Flex justifyContent="center" mt="20px">
+        <Flex justifyContent="center" mt="2vh" mb="5vh" align="center" ml ={{ base: '16', md: '0' }}>
+          {currentPage > 1 && (
           <IconButton
               aria-label="Previous Page"
               icon={<FaArrowLeft />}
@@ -118,9 +118,11 @@ export default function Recipes() {
               colorScheme="whiteAlpha"
               disabled={currentPage === 1}
           />
-          <Text color="white" mx="10px">
-            {currentPage}
+          )}
+          <Text color="white" mx="20px">
+            {currentPage}/{totalPages}
           </Text>
+          {currentPage < totalPages && (
           <IconButton
               aria-label="Next Page"
               icon={<FaArrowRight />}
@@ -129,6 +131,7 @@ export default function Recipes() {
               colorScheme="whiteAlpha"
               disabled={currentPage === Math.ceil(meals.length / itemsPerPage)}
           />
+          )}
         </Flex>
       </div>
   );

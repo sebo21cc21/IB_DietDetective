@@ -53,6 +53,7 @@ const linkStyles = {
 
 export default function Register() {
     const {setAuth} = useContext(AuthContext);
+    const [registrationError, setRegistrationError] = useState('');
     const validationSchema = Yup.object().shape({
         name: Yup.string().required('Imię jest wymagane'),
         surname: Yup.string().required('Nazwisko jest wymagane'),
@@ -96,6 +97,8 @@ export default function Register() {
                 console.log('Registration successful:', responseData);
             } catch (error) {
                 console.error('Registration failed:', error);
+                const errorMessage = 'Rejestracja niepoprawna, użytkownik istnieje';
+                setRegistrationError(errorMessage);
             }
         },
     });
@@ -106,7 +109,7 @@ export default function Register() {
     };
 
     return (
-        <Box sx={formContainerStyles}>
+        <Box sx={formContainerStyles} mb={8}>
             <Heading sx={headingStyles}>Witaj!</Heading>
             <Text sx={textStyles}>
                 Uzupełnij, aby bezpłatnie zalogować się lub utworzyć nowe konto w systemie.
@@ -189,19 +192,18 @@ export default function Register() {
                     )}
                 </FormControl>
 
-                <FormControl mb={4}>
+                <FormControl mb={4} display="flex" alignItems="flex-start">
                     <Checkbox
                         isChecked={isChecked}
                         onChange={handleCheckboxChange}
                         colorScheme="blue"
                         color={"white"}
-
                     >
-                         <span style={{fontSize: "14px"}}>
-                             Niniejszym akceptuję <ChakraLink
-                             href="https://www.freeprivacypolicy.com/live/6b237d9c-11fb-4bc4-a979-572c2f3e57fd"
-                             color="blue.500" target="_blank">Regulamin, Warunki Handlowe</ChakraLink> i zgadzam się na warunki i postanowienia tego serwisu.*
-                         </span>
+                        <Box textAlign="justify" ml={2} fontSize="12px">
+                            Niniejszym akceptuję <ChakraLink
+                            href="https://www.freeprivacypolicy.com/live/6b237d9c-11fb-4bc4-a979-572c2f3e57fd"
+                            color="blue.500" isExternal>Regulamin, Warunki Handlowe</ChakraLink>, zgadzam się na warunki i postanowienia tego serwisu.*
+                        </Box>
                     </Checkbox>
                     {formik.touched.agreeToTerms && formik.errors.agreeToTerms && (
                         <Alert status="error" variant="subtle" mt={1}>
@@ -210,19 +212,26 @@ export default function Register() {
                         </Alert>
                     )}
                 </FormControl>
-                <FormControl>
+                <FormControl display="flex" alignItems="flex-start">
                     <Checkbox
                         colorScheme="blue"
                         color={"white"}
                     >
-                        <span style={{fontSize: "12px"}}>
-                        Wyrażam zgodę na kontakt ze mną, w tym na przesyłanie informacji sprzedażowych i marketingowych dotyczących DietDetective, od LDV Polska S.A. z siedzibą w Warszawie, za pomocą środków komunikacji elektronicznej (e-mail, SMS), a także wyrażenie zgody na przetwarzanie przez LDV Polska S.A. z siedzibą w Warszawie mojego dane osobowe (adres e-mail, numer telefonu) w tym celu. Podstawa prawna przetwarzania danych jest art. 6 ust. (a) RODO.
-                        </span>
+                        <Box textAlign="justify" ml={2} fontSize="12px">
+                            Wyrażam zgodę na kontakt ze mną, w tym na przesyłanie informacji sprzedażowych i marketingowych dotyczących DietDetective, od LDV Polska S.A. z siedzibą w Warszawie, za pomocą środków komunikacji elektronicznej (e-mail, SMS), a także wyrażenie zgody na przetwarzanie przez LDV Polska S.A. z siedzibą w Warszawie mojego dane osobowe (adres e-mail, numer telefonu) w tym celu. Podstawa prawna przetwarzania danych jest art. 6 ust. (a) RODO.
+                        </Box>
                     </Checkbox>
                 </FormControl>
 
-                <Button colorScheme="messenger" size="md" w="full" md="2" type="submit" >
-                        Zarejestruj się
+                {registrationError && (
+                    <Alert status="error" variant="subtle" mb={4}>
+                        <AlertIcon />
+                        <AlertDescription>{registrationError}</AlertDescription>
+                    </Alert>
+                )}
+
+                <Button colorScheme="messenger" size="md" w="full" md="2" type="submit"  mt={3}>
+                    Zarejestruj się
                 </Button>
             </form>
 
