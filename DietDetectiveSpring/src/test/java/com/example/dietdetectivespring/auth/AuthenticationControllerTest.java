@@ -1,6 +1,7 @@
 package com.example.dietdetectivespring.auth;
 
-import com.example.dietdetectivespring.security.JwtAuthenticationFilter;
+import com.example.dietdetectivespring.config.security.JwtAuthenticationFilter;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityExistsException;
 import lombok.val;
@@ -17,7 +18,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = AuthenticationController.class,
@@ -113,13 +116,13 @@ public class AuthenticationControllerTest {
 
         // given
         val registerRequest = RegisterRequest.builder()
-                .email("email")
-                .password("password")
+                .email("example@email.com")
+                .password("P@ssword")
                 .firstname("firstname")
                 .lastname("lastname")
                 .build();
 
-        doThrow(EntityExistsException.class).when(authenticationService).register(registerRequest);
+        doThrow(new EntityExistsException()).when(authenticationService).register(registerRequest);
 
         // when
         val resultActions = mockMvc.perform(post("/auth/register")
@@ -128,5 +131,25 @@ public class AuthenticationControllerTest {
 
         // then
         resultActions.andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldValidate() throws Exception {
+        //given
+        val token = "token";
+        val authenticationResponse = AuthenticationResponse.builder()
+                .token("token")
+                .build();
+        given(authenticationService.validate(token)).willReturn(authenticationResponse);
+
+        //when
+        val resultActions = mockMvc.perform(get("/auth/validate")
+                .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", token)
+                .content(objectMapper.writeValueAsString(token)));
+
+        //then
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value(token));
     }
 }

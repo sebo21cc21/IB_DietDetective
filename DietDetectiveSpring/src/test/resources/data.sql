@@ -24,14 +24,14 @@ VALUES
     (3, 3),
     (3, 4);
 
-INSERT INTO users (first_name, last_name, email, password, provider, provider_id)
-VALUES ('Alice', 'Johnson', 'alice@example.com', 'hashed_password_1', 'local', 'local_provider_id_1');
+INSERT INTO users (first_name, last_name, email, password)
+VALUES ('Alice', 'Johnson', 'alice@example.com', 'hashed_password_1');
 
-INSERT INTO users (first_name, last_name, birth_date, target_weight, goal, email, password, provider, provider_id)
-VALUES ('Bob', 'Smith', '1985-03-15', 80.0, 'Build Muscle', 'bob@example.com', 'hashed_password_2', 'google', 'google_provider_id_2');
+INSERT INTO users (first_name, last_name, birth_date, target_weight, goal, email, password)
+VALUES ('Bob', 'Smith', '1985-03-15', 80.0, 'Build Muscle', 'bob@example.com', 'hashed_password_2');
 
-INSERT INTO users (first_name, last_name, birth_date, email, password, provider, provider_id)
-VALUES ('Charlie', 'Brown', '1992-07-20', 'charlie@example.com', 'hashed_password_3', 'facebook', 'facebook_provider_id_3');
+INSERT INTO users (first_name, last_name, birth_date, email, password)
+VALUES ('Charlie', 'Brown', '1992-07-20', 'charlie@example.com', 'hashed_password_3');
 
 INSERT INTO weight_records (user_id, weight, date)
 VALUES
@@ -100,39 +100,34 @@ VALUES
     (1, 2000, '2019-01-30');
 
 
-INSERT INTO eaten_meals (user_id, meal_id, date)
+INSERT INTO eaten_meals (user_id, meal_id, date, eaten_weight)
 VALUES
-    (1, 1, '2019-01-01'),
-    (1, 2, '2019-01-01'),
-    (1, 3, '2019-01-01'),
-    (1, 4, '2019-01-01'),
-    (1, 1, '2019-01-02'),
-    (1, 2, '2019-01-02'),
-    (1, 3, '2019-01-02'),
-    (1, 4, '2019-01-02'),
-    (1, 1, '2019-01-03'),
-    (1, 2, '2019-01-03'),
-    (1, 3, '2019-01-03'),
-    (1, 4, '2019-01-03'),
-    (1, 1, '2019-01-04'),
-    (1, 2, '2019-01-04'),
-    (1, 3, '2019-01-04'),
-    (1, 4, '2019-01-04'),
-    (1, 1, '2019-01-05'),
-    (1, 2, '2019-01-05'),
-    (1, 3, '2019-01-05'),
-    (1, 4, '2019-01-05'),
-    (1, 1, '2019-01-06'),
-    (1, 2, '2019-01-06'),
-    (1, 3, '2019-01-06'),
-    (1, 4, '2019-01-06'),
-    (1, 1, '2019-01-07'),
-    (1, 2, '2019-01-07'),
-    (1, 3, '2019-01-07'),
-    (1, 4, '2019-01-07'),
-    (1, 1, '2019-01-08'),
-    (1, 2, '2019-01-08'),
-    (1, 3, '2019-01-08'),
-    (1, 4, '2019-01-08'),
-    (1, 1, '2019-01-09'),
-    (1, 2, '2019-01-09');
+    (1, 1, '2019-01-01', 100),
+    (1, 2, '2019-01-01', 100),
+    (1, 3, '2019-01-01', 100),
+    (1, 1, '2019-01-02', 100),
+    (1, 2, '2019-01-02', 100),
+    (1, 3, '2019-01-02', 100),
+    (1, 1, '2019-01-03', 100),
+    (1, 2, '2019-01-03', 100),
+    (1, 3, '2019-01-03', 100),
+    (1, 1, '2019-01-04', 100),
+    (1, 2, '2019-01-04', 100),
+    (1, 3, '2019-01-04', 100),
+    (1, 1, '2019-01-05', 100),
+    (1, 2, '2019-01-05', 100),
+    (1, 3, '2019-01-05', 100),
+    (1, 1, '2019-01-06', 100),
+    (1, 2, '2019-01-06', 100),
+    (1, 3, '2019-01-06', 100),
+    (1, 1, '2019-01-07', 100),
+    (1, 2, '2019-01-07', 100),
+    (1, 3, '2019-01-07', 100),
+    (1, 1, '2019-01-08', 100),
+    (1, 2, '2019-01-08', 100),
+    (1, 3, '2019-01-08', 100),
+    (1, 1, '2019-01-09', 100),
+    (1, 2, '2019-01-09', 100),
+    (1, 3, '2019-01-09', 100),
+    (1, 1, '2019-01-10', 100),
+    (1, 2, '2019-01-10', 100);

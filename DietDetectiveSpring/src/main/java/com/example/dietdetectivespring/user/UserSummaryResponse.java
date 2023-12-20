@@ -13,9 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserSummaryResponse {
-    private Integer caloriesDemand;
-    private Integer caloriesConsumedToday;
-    private Integer caloriesLeftToday;
+    private Float caloriesDemand;
+    private Float caloriesConsumedToday;
+    private Float caloriesLeftToday;
     private Float todayWeight;
     private Float targetWeight;
     private Float waterToday;

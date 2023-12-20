@@ -1,8 +1,12 @@
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import { Bar } from 'react-chartjs-2';
 import Chart from 'chart.js/auto';
+import {useBreakpointValue} from "@chakra-ui/react";
 
 const EatenMealsLastWeekChart = ({ eatenMealsFromLastWeek }) => {
+    const chartRef2 = useRef(null);
+    const isMobile = useBreakpointValue({ base: true, lg: false });
+
     if (!eatenMealsFromLastWeek || eatenMealsFromLastWeek.length === 0) {
         return <p>Nie ma danych z ostatniego tygodnia</p>;
     }
@@ -26,14 +30,19 @@ const EatenMealsLastWeekChart = ({ eatenMealsFromLastWeek }) => {
     };
 
     const options = {
+
         scales: {
             y: {
                 beginAtZero: true
             }
         }
     };
-
-    return <Bar data={data} options={options} />;
+    if (isMobile) {
+        options.maintainAspectRatio = false
+    }
+    return <div >
+        <Bar ref={chartRef2} data={data} options={options}/>
+    </div>
 };
 
 export default EatenMealsLastWeekChart;

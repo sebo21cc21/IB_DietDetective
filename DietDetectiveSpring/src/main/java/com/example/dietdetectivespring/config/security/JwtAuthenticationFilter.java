@@ -1,5 +1,6 @@
-package com.example.dietdetectivespring.security;
+package com.example.dietdetectivespring.config.security;
 
+import com.example.dietdetectivespring.user.security.UserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -218,7 +218,7 @@ export default function Register() {
                         color={"white"}
                     >
                         <Box textAlign="justify" ml={2} fontSize="12px">
-                            Wyrażam zgodę na kontakt ze mną, w tym na przesyłanie informacji sprzedażowych i marketingowych dotyczących DietDetective, od LDV Polska S.A. z siedzibą w Warszawie, za pomocą środków komunikacji elektronicznej (e-mail, SMS), a także wyrażenie zgody na przetwarzanie przez LDV Polska S.A. z siedzibą w Warszawie mojego dane osobowe (adres e-mail, numer telefonu) w tym celu. Podstawa prawna przetwarzania danych jest art. 6 ust. (a) RODO.
+                            Wyrażam zgodę na kontakt ze mną, w tym na przesyłanie informacji sprzedażowych i marketingowych dotyczących DietDetective, od DD Polska S.A. z siedzibą w Warszawie, za pomocą środków komunikacji elektronicznej (e-mail, SMS), a także wyrażenie zgody na przetwarzanie przez DD Polska S.A. z siedzibą w Warszawie mojego dane osobowe (adres e-mail, numer telefonu) w tym celu. Podstawa prawna przetwarzania danych jest art. 6 ust. (a) RODO.
                         </Box>
                     </Checkbox>
                 </FormControl>

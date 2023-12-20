@@ -1,10 +1,12 @@
 package com.example.dietdetectivespring.auth;
 
-import com.example.dietdetectivespring.security.JwtService;
+import com.example.dietdetectivespring.config.security.JwtService;
 import com.example.dietdetectivespring.user.AuthProvider;
 import com.example.dietdetectivespring.user.User;
 import com.example.dietdetectivespring.user.UserRepository;
+import com.example.dietdetectivespring.user.security.UserPrincipal;
 import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +56,6 @@ public class AuthenticationServiceTest {
                 .email("email")
                 .firstName("firstName")
                 .lastName("lastName")
-                .provider(AuthProvider.local)
                 .build();
 
         val token = "token";
@@ -62,6 +63,7 @@ public class AuthenticationServiceTest {
         val authenticationResponse = AuthenticationResponse.builder()
                 .token(token)
                 .expiration(date)
+                .firstName("firstName")
                 .build();
 
         given(userRepository.findByEmail(authenticationRequest.getEmail())).willReturn(Optional.of(user));
@@ -111,12 +113,12 @@ public class AuthenticationServiceTest {
                 .email("email")
                 .firstName("firstName")
                 .lastName("lastName")
-                .provider(AuthProvider.local)
                 .build();
 
         val authenticationResponse = AuthenticationResponse.builder()
                 .token(token)
                 .expiration(date)
+                .firstName("firstName")
                 .build();
 
         given(userRepository.existsByEmail(registerRequest.getEmail())).willReturn(false);
@@ -153,5 +155,46 @@ public class AuthenticationServiceTest {
         verify(jwtService, times(0)).generateToken(any());
     }
 
+    @Test
+    void shouldValidate() {
+        val token = "token";
+        val email = "email";
+        val user = User.builder()
+                .id(1)
+                .password("password")
+                .email("email")
+                .firstName("firstName")
+                .lastName("lastName")
+                .build();
+        given(jwtService.extractUsername(token)).willReturn(email);
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+        given(jwtService.isTokenValid(token, UserPrincipal.create(user))).willReturn(true);
+
+        //when
+        AuthenticationResponse response = authenticationService.validate(token);
+
+        //then
+        assertThat(response.getFirstName()).isEqualTo(user.getFirstName());
+    }
+
+    @Test
+    void shouldNotValidate() {
+        val token = "token";
+        val email = "email";
+        val user = User.builder()
+                .id(1)
+                .password("password")
+                .email("email")
+                .firstName("firstName")
+                .lastName("lastName")
+                .build();
+        given(jwtService.extractUsername(token)).willReturn(email);
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+        given(jwtService.isTokenValid(token, UserPrincipal.create(user))).willReturn(false);
+
+        //when
+        assertThatThrownBy(() -> authenticationService.validate(token)).
+                isInstanceOf(EntityNotFoundException.class);
+    }
 
 }

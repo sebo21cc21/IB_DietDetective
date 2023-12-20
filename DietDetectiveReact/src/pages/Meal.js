@@ -14,7 +14,7 @@ import {
   Th,
   Td,
   Button,
-  Select, IconButton, useBreakpointValue,
+  Select, IconButton, useBreakpointValue, Radio, RadioGroup,
 } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import {
@@ -29,6 +29,7 @@ import { FaPlus } from "react-icons/fa";
 import { useToast } from '@chakra-ui/react';
 import EatenMealsSummaryChart from "../components/EatenMealsSummaryChart";
 import EatenMealsLastWeekChart from "../components/EatenMealsLastWeekChart";
+import {LuListFilter} from "react-icons/lu";
 
 export default function Monitor() {
   const [meals, setMeals] = useState([]);
@@ -37,23 +38,26 @@ export default function Monitor() {
   const [categories, setCategories] = useState([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isIntoleranceSelected, setIsIntoleranceSelected] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentPageEaten, setCurrentPageEaten] = useState(1);
   const pageSize = 5;
   const totalPagesEaten = Math.ceil(eatenMeals.length / pageSize);
+  const [isLactoseFreeSelected, setIsLactoseFreeSelected] = useState(false);
+  const [isGlutenFreeSelected, setIsGlutenFreeSelected] = useState(false);
   const paginatedEatenMeals = eatenMeals.slice((currentPageEaten - 1) * pageSize, currentPageEaten * pageSize);
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [selectedFilter, setSelectedFilter] = useState("ingredients");
   const [visibleCheckboxIds, setVisibleCheckboxIds] = useState(new Set());
-  const [mealWeight, setMealWeight] = useState('');
   const [mealWeights, setMealWeights] = useState({});
-  const tableSize = useBreakpointValue({ base: 'sm', md: 'md' });
   const checkboxGridSpacing = useBreakpointValue({ base: 5, md: 3 });
+  const [isLowCarbSelected, setIsLowCarbSelected] = useState(false);
+  const [isHighProteinSelected, setIsHighProteinSelected] = useState(false);
   const toast = useToast();
+  const [isFilterActive, setIsFilterActive] = useState(false);
+
   const categoryOptions = {
-    all: 'Wszystkie',
     ingredients: 'Składniki',
     recipes: 'Przepisy',
-    intolerances: 'Nietolerancje pokarmowe'
   };
 
 
@@ -159,15 +163,12 @@ export default function Monitor() {
         setVisibleCheckboxIds(new Set(Array.from({ length: 14 }, (_, i) => i + 2)));
         break;
       case 'recipes':
-        setVisibleCheckboxIds(new Set(Array.from({ length: 7 }, (_, i) => i + 17)));
-        break;
-      case 'intolerances':
-        setVisibleCheckboxIds(new Set(Array.from({ length: 2 }, (_, i) => i + 17)));
+        setVisibleCheckboxIds(new Set(Array.from({ length: 7 }, (_, i) => i + 19)));
         break;
       default:
         setVisibleCheckboxIds(new Set());
     }
-  }, [selectedFilter]);
+  }, [selectedFilter, meals]);
   const handleFilterChange = (e) => {
     setSelectedFilter(e.target.value);
   }
@@ -178,7 +179,51 @@ export default function Monitor() {
     );
     setCurrentPage(1);
   };
+  const handleToleranceChange = (e) => {
+    const id = parseInt(e.target.value, 10);
+    setIsIntoleranceSelected(e.target.checked);
+    setSelectedCategoryIds(prev =>
+        prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
+    );
+    if (id === 17) {
+      setIsLactoseFreeSelected(e.target.checked);
 
+      if (e.target.checked && isGlutenFreeSelected) {
+        setIsGlutenFreeSelected(false);
+      }
+    }
+
+    if (id === 18) {
+      setIsGlutenFreeSelected(e.target.checked);
+
+      if (e.target.checked && isLactoseFreeSelected) {
+        setIsLactoseFreeSelected(false);
+      }
+    }
+    setCurrentPage(1);
+  };
+
+  const revertToOriginalOrder = () => {
+    fetchCategoryMeals(selectedCategoryIds.join(',') || '1,16');
+  }
+
+  const handleDietChange = (e) => {
+    if (e.target.value === 'lowCarb') {
+      setIsLowCarbSelected(e.target.checked);
+      if (e.target.checked) {
+        setMeals([...meals].sort((a, b) => a.carbohydrates - b.carbohydrates));
+      } else if (!isHighProteinSelected) {
+        revertToOriginalOrder();
+      }
+    } else if (e.target.value === 'highProtein') {
+      setIsHighProteinSelected(e.target.checked);
+      if (e.target.checked) {
+        setMeals([...meals].sort((a, b) => b.proteins - a.proteins));
+      } else if (!isLowCarbSelected) {
+        revertToOriginalOrder();
+      }
+    }
+  };
   const handleDelete = async (mealId) => {
     const mealToAdd = meals.find(meal => meal.id === mealId);
 
@@ -188,22 +233,22 @@ export default function Monitor() {
     }
 
     try {
-    const updatedEatenMeals = eatenMeals.filter(meal => meal.id !== mealId);
-    setEatenMeals(updatedEatenMeals);
+      const updatedEatenMeals = eatenMeals.filter(meal => meal.id !== mealId);
+      setEatenMeals(updatedEatenMeals);
 
-    const startIndex = (currentPageEaten - 1) * pageSize;
-    if (updatedEatenMeals.slice(startIndex, startIndex + pageSize).length === 0 && currentPageEaten > 1) {
-      setCurrentPageEaten(currentPageEaten - 1);
-    }
-    handleDeleteEatenMeal(mealId)
-        .then(() => {
-          fetchEatenMeals();
-          fetchEatenMealSummary();
-          console.log("Meal deleted successfully.");
-        })
-        .catch(error => {
-          console.error("Failed to delete meal:", error);
-        });
+      const startIndex = (currentPageEaten - 1) * pageSize;
+      if (updatedEatenMeals.slice(startIndex, startIndex + pageSize).length === 0 && currentPageEaten > 1) {
+        setCurrentPageEaten(currentPageEaten - 1);
+      }
+      handleDeleteEatenMeal(mealId)
+          .then(() => {
+            fetchEatenMeals();
+            fetchEatenMealSummary();
+            console.log("Meal deleted successfully.");
+          })
+          .catch(error => {
+            console.error("Failed to delete meal:", error);
+          });
       toast({
         title: `Pomyślnie usunięto ${mealToAdd.name}`,
         status: 'error',
@@ -215,7 +260,18 @@ export default function Monitor() {
       console.error('Error deleting meal', error);
     }
   };
+  const toggleFilter = () => {
+    setIsFilterActive(!isFilterActive);
+    setSelectedCategoryIds([]);
+    setSearchTerm('');
+    setIsIntoleranceSelected(false);
+    setIsLowCarbSelected(false);
+    setIsHighProteinSelected(false);
+    setSelectedFilter('ingredients');
+    setVisibleCheckboxIds(new Set());
 
+    fetchCategoryMeals(selectedCategoryIds.join(',') || '1,16');
+  };
 
   const filteredMeals = meals.filter(meal => {
     const searchWords = searchTerm.toLowerCase().split(/\s+/);
@@ -251,39 +307,77 @@ export default function Monitor() {
   }
   return (
       <div className="App">
-        <Container as="section" maxWidth="2x1" py="10px">
-          <SimpleGrid spacing={10} minChildWidth="250px">
+        <Container as="section" maxWidth="2x1" py="10px" ml ={{ base: '6', md: '0' }}>
+          <SimpleGrid spacing={10} minChildWidth="250px" >
             <Box>
+              <Button aria-label="Details" colorScheme="teal" onClick={toggleFilter}><LuListFilter /> Filtruj</Button>
+              {isFilterActive && ( <>
               <Text fontSize="xl" fontWeight="bold" color="white">Wybierz kategorię</Text>
-              <Select color="messenger.500" onChange={handleFilterChange}>
-                {Object.entries(categoryOptions).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                ))}
+              <RadioGroup value={selectedFilter} onChange={setSelectedFilter}>
+                <SimpleGrid columns={2} spacing={checkboxGridSpacing} color="white" placeItems="center" justifyContent="center">
+                <Radio color="white" value="ingredients" isDisabled={isIntoleranceSelected}>
+                  Składniki
+                </Radio>
+                <Radio color="white" value="recipes">
+                  Przepisy
+                </Radio>
+                </SimpleGrid>
+              </RadioGroup>
 
-              </Select>
-              <Text fontSize="xl" fontWeight="bold" color="white" mt={10}>Filtruj po kategoriach</Text>
+
               <CheckboxGroup colorScheme="green">
-                <SimpleGrid columns={{ base: 2, md: 4 }} spacing={checkboxGridSpacing} color="white">
+                {!isIntoleranceSelected && (<>
+                <Text fontSize="xl" fontWeight="bold" color="white" mt={10} mb={5}>Filtruj po kategoriach:</Text>
+                <SimpleGrid columns={{ base: 2, md: 5 }} spacing={checkboxGridSpacing} color="white">
                   {categories.filter(category => visibleCheckboxIds.has(category.id)).map(category => (
                       <Checkbox key={category.id} value={category.id.toString()} onChange={handleCategoryChange}>
                         {category.name}
                       </Checkbox>
                   ))}
                 </SimpleGrid>
+                </>
+                )}
+                {selectedFilter.includes("recipes") && (
+                    <>
+                <Text fontSize="xl" fontWeight="bold" color="white" mt={10} mb={5}>Nietolerancje pokarmowe:</Text>
+                <SimpleGrid columns={2} spacing={checkboxGridSpacing} color="white" placeItems="center" justifyContent="center">
+                  {categories.filter(category => category.id === 17).map(category => (
+                      <Checkbox key={17} value={"17"} onChange={handleToleranceChange} isDisabled = {isGlutenFreeSelected}>
+                        {category.name}
+                      </Checkbox>
+                  ))}
+                  {categories.filter(category => category.id === 18).map(category => (
+                      <Checkbox key={18} value={"18"} onChange={handleToleranceChange} isDisabled = {isLactoseFreeSelected}>
+                        {category.name}
+                      </Checkbox>
+                  ))}
+                </SimpleGrid></>
+                )}
+                <Text fontSize="xl" fontWeight="bold" color="white" mt={10} mb={5}>Wybierz rodzaj diety:</Text>
+                <SimpleGrid columns={2} spacing={checkboxGridSpacing} color="white" placeItems="center" justifyContent="center">
+                  <Checkbox value="lowCarb" isChecked={isLowCarbSelected} onChange={handleDietChange}>
+                    Dieta niskowęglowodanowa
+                  </Checkbox>
+                  <Checkbox value="highProtein" isChecked={isHighProteinSelected} onChange={handleDietChange}>
+                    Dieta wysokobiałkowa
+                  </Checkbox>
+                </SimpleGrid>
               </CheckboxGroup>
+                  </>
+              )}
               <Text fontSize="xl" fontWeight="bold" color="white" mt={10}>Wyszukaj posiłki</Text>
-              <Input color="white" placeholder="Wyszukaj posiłek..." onChange={(e) => setSearchTerm(e.target.value)} />
+              <Input color="white" _placeholder={{  color: 'rgba(255, 255, 255, 0.800)' }} placeholder="Wyszukaj posiłek..." onChange={(e) => setSearchTerm(e.target.value)} />
 
               <Table className="responsive-table" variant="simple" color="white">
                 <Thead>
                   <Tr>
-                    <Th>Nazwa posiłku</Th>
-                    <Th>Proporcja na</Th>
-                    <Th>Kalorie</Th>
-                    <Th>Białka</Th>
-                    <Th>Węglowodany</Th>
-                    <Th>Tłuszcze</Th>
-                    <Th>Dodaj do spożytych</Th>
+                    <Th color = "rgba(255, 255, 255, 0.800)">Nazwa posiłku</Th>
+                    <Th color = "rgba(255, 255, 255, 0.800)">Proporcja na</Th>
+                    <Th color = "rgba(255, 255, 255, 0.800)">Kalorie</Th>
+                    <Th color = "rgba(255, 255, 255, 0.800)">Białka</Th>
+                    <Th color = "rgba(255, 255, 255, 0.800)">Węglowodany</Th>
+                    <Th color = "rgba(255, 255, 255, 0.800)">Tłuszcze</Th>
+                    <Th color = "rgba(255, 255, 255, 0.800)">Dodaj do spożytych</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -309,6 +403,7 @@ export default function Monitor() {
                                     type="number"
                                     mr = {2}
                                     placeholder="Wpisz wagę w gramach"
+                                    _placeholder={{  color: 'rgba(255, 255, 255, 0.800)' }}
                                     value={mealWeights[meal.id] || ''}
                                     onChange={(e) => handleWeightChange(meal.id, e.target.value)}
                                 />
@@ -342,62 +437,61 @@ export default function Monitor() {
                     Brak spożytych posiłków w ciągu dnia. Dodaj posiłek powyżej.
                   </Text>
               ) : (<>
-                <Table className="responsive-table" variant="simple" color="white">
-                <Thead>
-                  <Tr>
-                    <Th>Nazwa posiłku</Th>
-                    <Th>Proporcja na</Th>
-                    <Th>Kalorie</Th>
-                    <Th>Białka</Th>
-                    <Th>Węglowodany</Th>
-                    <Th>Tłuszcze</Th>
-                    <Th>Usuń</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {paginatedEatenMeals.map(eatenMeal => (
-                      <Tr key={eatenMeal.meal.id}>
-                        <Td data-label="Nazwa posiłku">{eatenMeal.meal.name} </Td>
-                        <Td data-label="Proporcja na">{eatenMeal.meal.id >= 6605 && eatenMeal.meal.id <= 6640 ?
-                            `${parseInt(parseInt(eatenMeal.meal.unit.replace('g', '')) / 100 * eatenMeal.eatenWeight)} g` :
-                            `${eatenMeal.eatenWeight} g`
-                        }</Td>
-                        <Td data-label="Kalorie">{(eatenMeal.meal.calories ).toFixed(0)} kcal</Td>
-                        <Td data-label="Białka">{(eatenMeal.meal.proteins ).toFixed(1)} g</Td>
-                        <Td data-label="Węglowodany">{(eatenMeal.meal.carbohydrates ).toFixed(1)} g</Td>
-                        <Td data-label="Tłuszcze">{(eatenMeal.meal.fats ).toFixed(1)} g</Td>
+                    <Table className="responsive-table" variant="simple" color="white">
+                      <Thead>
+                        <Tr>
+                          <Th color = "rgba(255, 255, 255, 0.800)">Nazwa posiłku</Th>
+                          <Th color = "rgba(255, 255, 255, 0.800)">Proporcja na</Th>
+                          <Th color = "rgba(255, 255, 255, 0.800)">Kalorie</Th>
+                          <Th color = "rgba(255, 255, 255, 0.800)">Białka</Th>
+                          <Th color = "rgba(255, 255, 255, 0.800)">Węglowodany</Th>
+                          <Th color = "rgba(255, 255, 255, 0.800)">Tłuszcze</Th>
+                          <Th color = "rgba(255, 255, 255, 0.800)">Usuń</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {paginatedEatenMeals.map(eatenMeal => (
+                            <Tr key={eatenMeal.meal.id}>
+                              <Td data-label="Nazwa posiłku">{eatenMeal.meal.name} </Td>
+                              <Td data-label="Proporcja na">{eatenMeal.meal.id >= 6605 && eatenMeal.meal.id <= 6640 ?
+                                  `${parseInt(parseInt(eatenMeal.meal.unit.replace('g', '')) / 100 * eatenMeal.eatenWeight)} g` :
+                                  `${eatenMeal.eatenWeight} g`
+                              }</Td>
+                              <Td data-label="Kalorie">{(eatenMeal.meal.calories ).toFixed(0)} kcal</Td>
+                              <Td data-label="Białka">{(eatenMeal.meal.proteins ).toFixed(1)} g</Td>
+                              <Td data-label="Węglowodany">{(eatenMeal.meal.carbohydrates ).toFixed(1)} g</Td>
+                              <Td data-label="Tłuszcze">{(eatenMeal.meal.fats ).toFixed(1)} g</Td>
 
-                        <Td className="add-to-eaten">
-                          <Button colorScheme="red" onClick={() => handleDelete(eatenMeal.meal.id)}>
-                            Usuń
-                          </Button>
-                        </Td>
-                      </Tr>
-                  ))}
-                </Tbody>
-              </Table>
+                              <Td className="add-to-eaten">
+                                <Button colorScheme="red" onClick={() => handleDelete(eatenMeal.meal.id)}>
+                                  Usuń
+                                </Button>
+                              </Td>
+                            </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
 
-              <Flex justifyContent="center" mt="2" align="center" mb={5}>
-                {currentPageEaten > 1 && (
-                    <Button onClick={() => setCurrentPageEaten(currentPageEaten - 1)}>Poprzednia</Button>
-                )}
-                <Text fontSize="md" color="white" mx="4">{`${currentPageEaten}/${totalPagesEaten}`}</Text>
-                {currentPageEaten < totalPagesEaten && (
-                    <Button onClick={() => setCurrentPageEaten(currentPageEaten + 1)}>Następna</Button>
-                )}
-              </Flex>
-              </>
+                    <Flex justifyContent="center" mt="2" align="center" mb={5}>
+                      {currentPageEaten > 1 && (
+                          <Button onClick={() => setCurrentPageEaten(currentPageEaten - 1)}>Poprzednia</Button>
+                      )}
+                      <Text fontSize="md" color="white" mx="4">{`${currentPageEaten}/${totalPagesEaten}`}</Text>
+                      {currentPageEaten < totalPagesEaten && (
+                          <Button onClick={() => setCurrentPageEaten(currentPageEaten + 1)}>Następna</Button>
+                      )}
+                    </Flex>
+                  </>
               )}
 
             </Box>
           </SimpleGrid>
         </Container>
-        <Container as="section" maxWidth={"2x1"} py="10px" mb = {7}>
+        <Container as="section" maxWidth={"2x1"} py="10px" mb = {7} ml ={{ base: '6', md: '0' }}>
           <SimpleGrid spacing={10} minChildWidth="250px">
             <Box sx={ThirdBox} alignItems="center" minH="300px">
-              <EatenMealsSummaryChart eatenMealsSummary={eatenMealsSummary} />
               <Text fontSize="xl" fontWeight="bold">Spożycie w ciągu dnia</Text>
-
+              <EatenMealsSummaryChart eatenMealsSummary={eatenMealsSummary} />
             </Box>
             <Box sx={FourthBox}>
               <Text fontSize="xl" fontWeight="bold">Spożyte kalorie w ostatnim tygodniu</Text>

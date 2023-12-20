@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
     Box,
     Heading,
@@ -16,7 +16,7 @@ import { NavLink } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { ACCESS_TOKEN } from '../constans';
-import {login} from '../util/APIUtils';
+import {getCurrentUser, login} from '../util/APIUtils';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthProvider';
 
@@ -52,6 +52,7 @@ const linkStyles = {
 };
 
 export default function Login() {
+    const [setUser] = useState();
     const { setAuth } = useContext(AuthContext);
     const navigate = useNavigate();
     const [loginError, setLoginError] = useState(false);
@@ -62,6 +63,16 @@ export default function Login() {
             .min(8, 'Hasło musi mieć co najmniej 8 znaków')
             .matches(/(?=.*[!@#$%^&*])/, 'Hasło musi zawierać co najmniej jeden znak specjalny (!@#$%^&*)'),
     });
+    const fetchUserData = () => {
+        getCurrentUser()
+            .then(response => {
+                console.log(response.data);
+                setUser(response.data);
+            })
+            .catch(error => {
+                console.error('Błąd podczas pobierania danych użytkownika', error);
+            });
+    };
 
     const formik = useFormik({
         initialValues: {
@@ -80,6 +91,7 @@ export default function Login() {
                         currentUser: response,
                         isInterviewCompleted: response.interviewCompleted
                     });
+                    fetchUserData();
                     navigate('/monitor');
                 })
                 .catch((error) => {

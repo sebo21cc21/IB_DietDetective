@@ -27,7 +27,7 @@ export default function Main() {
               </ListItem>
             </List>
             <Image
-                boxSize={{base: '50vh', md: '75vh', xl: '90vh'}}
+                boxSize={{base: '50vh', md: '75vh', xl: '80vh'}}
                 src="img/circle.png"
                 alt="Circle"
                 position={"absolute"}

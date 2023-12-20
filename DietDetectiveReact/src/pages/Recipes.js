@@ -20,7 +20,7 @@ export default function Recipes() {
   const [id] = useState(16);
   const FirstBox = {
     bgGradient: "linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))",
-    width: "300px",
+    width: "350px",
     height: "300px",
     color: "white",
     borderRadius: "lg",
@@ -74,35 +74,42 @@ export default function Recipes() {
       <div className="App">
         <Heading color="white">Na co masz ochotę?</Heading>
         <Container maxWidth={'3x1'} py="10px" >
-          <SimpleGrid spacing={10} ml ={{ base: '0', md: '55' }} minChildWidth="300px">
+          <SimpleGrid spacing={6} ml ={{ base: '0', md: '5' }} minChildWidth="300px">
             {meals && meals.slice(startIndex, endIndex).map((meal, index) => (
                 <Box key={meal.id} sx={FirstBox}>
-                  <Flex justifyContent="center">
-                    <img
-                        src={meal.image}
-                        alt={meal.name}
-                        style={{
-                          height: '50%',
-                          width: '50%',
-                          borderRadius: '50%'
-                        }}
-                    />
-                  </Flex>
-                  <Text fontSize="xl" fontWeight="bold">
-                    {meal.name}
-                  </Text>
-                  <Text>{meal.calories} kcal / 100g</Text>
-
-                  <Button
-                      leftIcon={<FaInfoCircle />}
-                      onClick={() => handleDetailsClick(meal.id)}
-                      size="sm"
-                      colorScheme="whiteAlpha"
-                      variant="outline"
+                  <Flex
+                      direction="column"
+                      justifyContent="space-between"
+                      height="100%"
                   >
-                    Przygotowanie
-                  </Button>
-
+                    <Flex justifyContent="center" height="50%">
+                      <img
+                          src={meal.image}
+                          alt={meal.name}
+                          style={{
+                            maxWidth: '100%',
+                            maxHeight: '100%',
+                            borderRadius: '50%'
+                          }}
+                      />
+                    </Flex>
+                    <Flex direction="column" alignItems="center">
+                      <Text fontSize="lg" fontWeight="bold" >
+                        {meal.name}
+                      </Text>
+                      <Text mb={3}>{meal.calories} kcal / 100g</Text>
+                      <Button
+                          leftIcon={<FaInfoCircle />}
+                          onClick={() => handleDetailsClick(meal.id)}
+                          size="sm"
+                          colorScheme="whiteAlpha"
+                          variant="outline"
+                          width="100%" // make the button fill the container width
+                      >
+                        Przygotowanie
+                      </Button>
+                    </Flex>
+                  </Flex>
                 </Box>
             ))}
           </SimpleGrid>

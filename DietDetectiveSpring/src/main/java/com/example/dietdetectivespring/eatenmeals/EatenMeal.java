@@ -17,7 +17,6 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString
 public class EatenMeal {
 
     @Id
@@ -38,17 +37,4 @@ public class EatenMeal {
     @ManyToOne
     @JoinColumn(name = "meal_id", nullable = false)
     private Meal meal;
-
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        EatenMeal that = (EatenMeal) o;
-        return id != null && Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
-
 }

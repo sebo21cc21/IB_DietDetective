@@ -18,7 +18,6 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString
 public class Meal {
 
     @Id
@@ -55,24 +54,11 @@ public class Meal {
     @Column(name = "short_description")
     private String shortDescription;
 
-
     @ManyToMany(mappedBy = "meals")
     @JsonIgnore
     @ToString.Exclude
     private Set<Category> categories;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Meal that = (Meal) o;
-        return id != null && Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 
     public void multiplyProperties(Float multiplier) {
         calories = (int) (calories * multiplier);

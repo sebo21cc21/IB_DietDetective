@@ -26,10 +26,14 @@ public class EatenMealsService {
     private final WeightRecordService weightRecordService;
 
     public EatenMeal addEatenMeal(EatenMealRequest eatenMealRequest, String email) {
-        User userByEmail = userRepository.findByEmail(email).orElseThrow(EntityExistsException::new);
+        User userByEmail = userRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new);
         Meal mealById = mealService.getMealById(eatenMealRequest.getMealId());
 
-        Optional<EatenMeal> dbEatenMeal = eatenMealRepository.findAllByMealIdAndUserId(mealById.getId(), userByEmail.getId());
+        Optional<EatenMeal> dbEatenMeal = eatenMealRepository
+                .findByMealIdAndUserIdAndDate(
+                        mealById.getId(),
+                        userByEmail.getId(),
+                        new Date(System.currentTimeMillis()));
         if (dbEatenMeal.isPresent()) {
             EatenMeal eatenMeal = dbEatenMeal.get();
             eatenMeal.setEatenWeight(eatenMeal.getEatenWeight() + eatenMealRequest.getEatenWeight());
@@ -112,12 +116,20 @@ public class EatenMealsService {
     }
 
     public void deleteEatenMeal(Integer id, String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(EntityExistsException::new);
-        Optional<EatenMeal> eatenMeals = eatenMealRepository.findAllByMealIdAndUserId(id, user.getId());
+        User user = userRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new);
+        Optional<EatenMeal> eatenMeals = eatenMealRepository
+                .findByMealIdAndUserIdAndDate(
+                        id,
+                        user.getId(),
+                        new Date(System.currentTimeMillis()));
         eatenMealRepository.delete(eatenMeals.orElseThrow(EntityNotFoundException::new));
     }
+
     public EatenMealsSummaryResponse getMealsSummary(String email) {
-        List<EatenMeal> eatenMealsToday = eatenMealRepository.findAllByUserEmailAndDate(email, new Date(System.currentTimeMillis()));
+        List<EatenMeal> eatenMealsToday = eatenMealRepository
+                .findAllByUserEmailAndDate(email, new Date(System.currentTimeMillis())).stream()
+                .peek(eatenMeal -> eatenMeal.getMeal().multiplyProperties(eatenMeal.getEatenWeight() / 100F))
+                .toList();
 
         return EatenMealsSummaryResponse.builder()
                 .eatenMealsToday(getEatenMealsWithoutDate(eatenMealsToday))

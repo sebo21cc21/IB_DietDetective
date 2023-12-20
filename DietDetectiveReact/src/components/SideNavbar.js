@@ -1,12 +1,16 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {NavLink} from 'react-router-dom';
-import {GiHeartBeats, GiHotMeal, GiMeal} from 'react-icons/gi';
-import {FaBeer, FaSignInAlt, FaUser, FaUserPlus, FaUtensils, FaHome} from 'react-icons/fa';
+import {GiHeartBeats, GiHotMeal} from 'react-icons/gi';
+import { FaSignInAlt, FaUser, FaUserPlus, FaUtensils, FaHome} from 'react-icons/fa';
 import {Box, Flex, Heading, Image, List, ListItem} from '@chakra-ui/react';
 import AuthContext from "../context/AuthProvider";
+import {getCurrentUser} from "../util/APIUtils";
+import { FaGlassWaterDroplet, FaMessage} from "react-icons/fa6";
+import {IoWater} from "react-icons/io5";
 
 
 export default function SideNavbar() {
+    const [user, setUser] = useState(null);
     const iconBox = {
         marginRight: "8px",
         bg: "#30344D",
@@ -24,6 +28,18 @@ export default function SideNavbar() {
         opacity: "0.5"
     };
     const {auth} = useContext(AuthContext);
+    const fetchUserData = () => {
+        getCurrentUser()
+            .then(response => {
+                setUser(response.data);
+            })
+            .catch(error => {
+                console.error('Błąd podczas pobierania danych użytkownika', error);
+            });
+    };
+    useEffect(() => {
+        fetchUserData();
+    }, []);
     return (
         <List color="white">
             <Flex align="center">
@@ -56,6 +72,16 @@ export default function SideNavbar() {
                         </NavLink>
                     </ListItem>
                     <ListItem marginBottom="20px">
+                        <NavLink to="/water">
+                            <Flex align="center">
+                                <Box sx={iconBox}>
+                                    <IoWater size={20}/>
+                                </Box>
+                                Nawodnienie
+                            </Flex>
+                        </NavLink>
+                    </ListItem>
+                    <ListItem marginBottom="20px">
                         <NavLink to="/meal">
                             <Flex align="center">
                                 <Box sx={iconBox}>
@@ -76,6 +102,16 @@ export default function SideNavbar() {
                         </NavLink>
                     </ListItem>
                     <ListItem marginBottom="20px">
+                        <NavLink to="/chat">
+                            <Flex align="center">
+                                <Box sx={iconBox}>
+                                    <FaMessage size={20} />
+                                </Box>
+                                Asystent
+                            </Flex>
+                        </NavLink>
+                    </ListItem>
+                    <ListItem marginBottom="20px">
                         <NavLink to="/account">
                             <Flex align="center">
                                 <Box sx={iconBox}>
@@ -85,6 +121,7 @@ export default function SideNavbar() {
                             </Flex>
                         </NavLink>
                     </ListItem>
+
                 </>
             ) : (
                 <>

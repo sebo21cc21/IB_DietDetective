@@ -1,11 +1,12 @@
 import React, {useEffect, useRef, useState} from 'react';
 import { Bar } from 'react-chartjs-2';
+import {useBreakpointValue} from "@chakra-ui/react";
 
 
 const EatenMealsSummaryChart = ({ eatenMealsSummary }) => {
 
     const chartRef = useRef(null);
-
+    const isMobile = useBreakpointValue({ base: true, lg: false });
     useEffect(() => {
         return () => {
             const chartInstance = chartRef.current;
@@ -18,12 +19,17 @@ const EatenMealsSummaryChart = ({ eatenMealsSummary }) => {
         return <p>Nie ma danych o dzisiejszym spożyciu kalorii.</p>;
     }
 
-    const carbohydratesPercentage = ((eatenMealsSummary.carbohydratesConsumedToday * 4) / eatenMealsSummary.caloriesConsumedToday) * 100;
-    const fatsPercentage = ((eatenMealsSummary.fatsConsumedToday *9) / eatenMealsSummary.caloriesConsumedToday) * 100;
-    const proteinsPercentage = ((eatenMealsSummary.proteinsConsumedToday *4) / eatenMealsSummary.caloriesConsumedToday) * 100;
+    const formatPercentage = (value) => {
+        return !isNaN(value) ? `${value.toFixed(1)}%` : "";
+    }
+
+    const fatsPercentage = formatPercentage(((eatenMealsSummary.fatsConsumedToday * 9) / eatenMealsSummary.caloriesConsumedToday) * 100);
+    const proteinsPercentage = formatPercentage(((eatenMealsSummary.proteinsConsumedToday * 4) / eatenMealsSummary.caloriesConsumedToday) * 100);
+    const carbohydratesPercentage = formatPercentage(100 - parseFloat(fatsPercentage) - parseFloat(proteinsPercentage));
+
 
     const data = {
-        labels: [`Kalorie`, `Węglowodany ${carbohydratesPercentage.toFixed(1)}%`, `Tłuszcze ${fatsPercentage.toFixed(1)}%`, `Białka ${proteinsPercentage.toFixed(1)}%`],
+        labels: [`Kalorie`, `Węglowodany ${carbohydratesPercentage}`, `Tłuszcze ${fatsPercentage}`, `Białka ${proteinsPercentage}`],
         datasets: [
             {
                 label: 'Spożyte Dziś',
@@ -49,7 +55,7 @@ const EatenMealsSummaryChart = ({ eatenMealsSummary }) => {
             },
             {
                 label: 'Dzienne zapotrzebowanie',
-                data: [eatenMealsSummary.caloriesDailyDemand, 0, 0, 0], // Assuming only calories have a daily demand
+                data: [eatenMealsSummary.caloriesDailyDemand, 0, 0, 0],
                 backgroundColor: 'rgba(153, 102, 255, 0.2)',
                 borderColor: 'rgba(153, 102, 255, 1)',
                 borderWidth: 1
@@ -64,7 +70,9 @@ const EatenMealsSummaryChart = ({ eatenMealsSummary }) => {
             }
         }
     };
-
+    if (isMobile) {
+        options.maintainAspectRatio = false
+    }
     return <Bar data={data} options={options} />;
 };
 

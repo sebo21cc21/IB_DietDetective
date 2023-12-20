@@ -56,15 +56,16 @@ export default function Account() {
     h: "200px",
     color: "white",
     borderRadius: "lg",
-    p: "75px",
+    p: "80px",
     textAlign: "center"
+
   }
 
   const SecondBox = {
     h: "350px",
     color: "white",
     borderRadius: "lg",
-    p: "100px",
+    p: "120px",
     textAlign: "center"
   }
   const ThirdBox = {
@@ -163,28 +164,14 @@ export default function Account() {
 
   return (
       <div className="App">
-        <Container as="section" maxWidth={"1x1"} py="10px">
-          <SimpleGrid spacing={10} minChildWidth="300px">
-            <Box sx={FirstBox} bgImage="url('img/account.png')" backgroundSize='cover'>
-              <Text fontSize={{ base: "lg", md: "xl" }}fontWeight="bold">Zapotrzebowanie</Text>
-              <Text>{summary ? summary.caloriesDemand : ''} kcal</Text>
-            </Box>
-          </SimpleGrid>
-        </Container>
 
-        <Container as="section" maxWidth={"2x1"} py="20px">
+
+        <Container as="section" maxWidth={"2x1"} py="20px" mt={3}>
           <SimpleGrid spacing={10} minChildWidth="300px">
             <Box sx={SecondBox} bgImage="url('img/account2.png')" backgroundSize='cover'>
 
-                <Text fontSize={{ base: "md", md: "xx-large" }} fontWeight="bold">{user ? `${user.firstName} ${user.lastName}` : ''}</Text>
-
-                <Text fontSize={{ base: "sm", md: "md" }}>
-                  <span style={{ color: "#A0AEC0" }}>Miło Cię znów widzieć!<br />
-                Czy masz jakieś pytania?</span>
-                </Text>
-
+              <Text fontSize={{ base: "md", md: "xx-large" }} fontWeight="bold">{user ? `${user.firstName} ${user.lastName}` : ''}</Text>
             </Box>
-
             <Box sx={ThirdBox} width={["100%", "100%", "100%","100%",  "210%","210%"]} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
               <Text fontSize={["md", "lg", "xl"]} fontWeight="bold">Informator o profilu</Text>
               <Flex justifyContent={"center"}>
@@ -254,6 +241,13 @@ export default function Account() {
             <Box></Box>
           </SimpleGrid>
         </Container>
+        {/*<Container as="section" maxWidth={"1x1"} py="10px">*/}
+        {/*  <SimpleGrid spacing={10} minChildWidth="300px">*/}
+        {/*    <Box sx={FirstBox} bgImage="url('img/account.png')" backgroundSize='cover'>*/}
+        {/*      <Text fontSize={{ base: "lg", md: "2xl" }}fontWeight="bold">Miło Cię znów widzieć!<br /></Text>*/}
+        {/*    </Box>*/}
+        {/*  </SimpleGrid>*/}
+        {/*</Container>*/}
       </div>
   )
 }

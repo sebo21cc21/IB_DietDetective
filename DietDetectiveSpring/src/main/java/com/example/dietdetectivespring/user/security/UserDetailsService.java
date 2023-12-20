@@ -1,4 +1,4 @@
-package com.example.dietdetectivespring.security;
+package com.example.dietdetectivespring.user.security;
 
 
 import com.example.dietdetectivespring.user.User;
@@ -22,13 +22,6 @@ public class UserDetailsService implements org.springframework.security.core.use
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found with email : " + email)
                 );
-
-        return UserPrincipal.create(user);
-    }
-
-
-    public UserDetails loadUserById(Integer id) {
-        User user = userRepository.findById(id).orElseThrow(EntityNotFoundException::new);
 
         return UserPrincipal.create(user);
     }

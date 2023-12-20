@@ -1,4 +1,4 @@
-package com.example.dietdetectivespring.security;
+package com.example.dietdetectivespring.config.security;
 
 
 import com.example.dietdetectivespring.config.AppProperties;

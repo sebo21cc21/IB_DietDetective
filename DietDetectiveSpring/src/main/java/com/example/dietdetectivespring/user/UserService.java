@@ -36,6 +36,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User updateUserPremium(UserPremiumRequest userPremiumRequest, String email) {
+        User user = getUserByEmail(email);
+        user.setPremium(userPremiumRequest.getPremium());
+        return userRepository.save(user);
+    }
+
     public User updateUserSurvey(UserSurveyRequest userSurveyRequest, String email) {
         User user = getUserByEmail(email);
         user.setSurvey(userSurveyRequest);
@@ -55,8 +61,8 @@ public class UserService {
 
     public UserSummaryResponse getUserStats(String email) {
 
-        int caloriesDemand = getCaloriesDemand(email);
-        int caloriesForToday = eatenMealsService.getCaloriesConsumedForToday(email);
+        float caloriesDemand = getCaloriesDemand(email);
+        float caloriesForToday = eatenMealsService.getCaloriesConsumedForToday(email);
 
         return UserSummaryResponse.builder()
                 .caloriesDemand(caloriesDemand)

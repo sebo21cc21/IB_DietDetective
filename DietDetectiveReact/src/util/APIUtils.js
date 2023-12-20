@@ -140,6 +140,20 @@ export function handleGoal(requestBody) {
     return axios.put(`${API_BASE_URL}/users/goal`, requestBody, config);
 
 }
+
+export function handlePremium(requestBody) {
+
+    const token = localStorage.getItem(ACCESS_TOKEN);
+
+    const config = {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    };
+    return axios.post(`${API_BASE_URL}/users/premium`, requestBody, config);
+
+}
 export function getWater() {
     const token = localStorage.getItem(ACCESS_TOKEN);
     return axios.get(`${API_BASE_URL}/water`, {

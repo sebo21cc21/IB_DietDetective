@@ -9,9 +9,10 @@ export default function Recipes() {
             alignItems="center"
             justifyContent="center"
             height="80vh"
+            ml ={{ base: '20', md: '0' }}
         >
           <Heading color="red">
-            Niestety wystąpił błąd, aplikacja nie oferuje takiego punktu dostępu
+            Niestety wystąpił błąd. Spróbuj ponownie później.
           </Heading>
           <img src="img/404.png" alt="404 Error" />
         </Flex>

@@ -22,11 +22,6 @@ public class WaterIntakeController {
         return new ResponseEntity<>(waterIntakeService.getUserWaterIntake(userDetails.getUsername()), HttpStatus.OK);
     }
 
-    @GetMapping("/today")
-    public ResponseEntity<WaterIntake> getWaterIntakeByToday(@AuthenticationPrincipal UserDetails userDetails) {
-        return new ResponseEntity<>(waterIntakeService.getWaterIntakeByToday(userDetails.getUsername()), HttpStatus.OK);
-    }
-
     @PostMapping
     public ResponseEntity<WaterIntake> addUserWaterIntake(@RequestBody WaterIntakeRequest waterIntake, @AuthenticationPrincipal UserDetails userDetails) {
         try {

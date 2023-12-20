@@ -1,4 +1,4 @@
-package com.example.dietdetectivespring.security;
+package com.example.dietdetectivespring.user.security;
 
 
 import com.example.dietdetectivespring.user.User;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class UserPrincipal implements OAuth2User, UserDetails {
+public class UserPrincipal implements UserDetails {
     private Integer id;
     private String email;
     private String password;
@@ -40,11 +40,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         );
     }
 
-    public static UserPrincipal create(User user, Map<String, Object> attributes) {
-        UserPrincipal userPrincipal = UserPrincipal.create(user);
-        userPrincipal.setAttributes(attributes);
-        return userPrincipal;
-    }
 
     @Override
     public String getUsername() {
@@ -71,8 +66,4 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return true;
     }
 
-    @Override
-    public String getName() {
-        return String.valueOf(id);
-    }
 }

@@ -1,17 +1,31 @@
-import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import React, {useContext, useState} from 'react';
+import {Outlet, useNavigate} from 'react-router-dom';
 import Login from '../components/Login';
 import SideNavbar from '../components/SideNavbar';
 import Footer from '../components/Footer';
-import { Grid, GridItem, IconButton, useBreakpointValue } from '@chakra-ui/react';
+import {Button, Flex, Grid, GridItem, HStack, IconButton, Spacer, Text, useBreakpointValue} from '@chakra-ui/react';
 import { HamburgerIcon, CloseIcon } from '@chakra-ui/icons';
+import AuthContext from "../context/AuthProvider";
+import {ACCESS_TOKEN} from "../constans";
+import Stripe from "../components/Stripe";
+import {FaUser} from "react-icons/fa";
 
 export default function RootLayout() {
   const [showNavbar, setShowNavbar] = useState(false);
-
+  const {setAuth, auth} = useContext(AuthContext);
+  const navigate = useNavigate();
   const toggleNavbar = () => {
     setShowNavbar(!showNavbar);
   };
+  const logout = () => {
+    setAuth({
+      isAuthenticated: false,
+      currentUser: null,
+      isInterviewCompleted: false
+    });
+    localStorage.removeItem(ACCESS_TOKEN);
+    navigate('/login');
+  }
 
   const footer = {
     as: 'footer',
@@ -50,9 +64,19 @@ export default function RootLayout() {
               right="20px"
               onClick={toggleNavbar}
               zIndex="999"
-            />
+              aria-label="Burger menu"/>
           )}
-          {!isMobile && <Login />}
+          {!isMobile && auth.isInterviewCompleted ? (<Login />) : ""}
+          {isMobile && auth.isInterviewCompleted ?  (
+              <Flex as="nav" alignItems="center" color={"white"} ml = {5}>
+                <Stripe />
+
+                <HStack spacing="20px">
+                  <Button ml = {3} colorScheme="messenger" size = "sm" onClick={logout}>Wyloguj</Button>
+                </HStack>
+              </Flex>
+          ) : ""
+          }
           <Outlet />
           
         </GridItem>

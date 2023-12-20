@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Container, SimpleGrid, Text, Heading, IconButton, Flex, Button,
+import {
+    Box, Container, SimpleGrid, Text, Heading, IconButton, Flex, Button,
     Table,
     Thead,
     Tbody,
@@ -7,7 +8,8 @@ import { Box, Container, SimpleGrid, Text, Heading, IconButton, Flex, Button,
     Th,
     Td,
     VStack,
-    Image} from '@chakra-ui/react';
+    Image, useBreakpointValue
+} from '@chakra-ui/react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { getMeal } from '../util/APIUtils';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -19,7 +21,7 @@ export default function RecipesDetail() {
     const descriptionParagraphs = meal.longDescription?.includes('\\n')
         ? meal.longDescription.split('\\n')
         : [meal.longDescription];
-
+    const isMobile = useBreakpointValue({ base: true, lg: false });
 
     const NutritionTable = () => (
         <Table className="responsive-table" variant="simple" color="white" width={"50%"}>
@@ -72,9 +74,25 @@ export default function RecipesDetail() {
     };
     return (
         <div className="App">
-            <Heading color="white" mb="5">Na co masz ochotę?</Heading>
-            <Flex justifyContent="center" >
-                <SimpleGrid spacing={10} justifyContent="center" mb="10">
+            <Box >
+            <Flex justifyContent="space-between" align="center" mb={2} mr={10}>
+                {!isMobile ? (<Button
+                    leftIcon={<FaArrowLeft/>}
+                    onClick={handleDetailsClick}
+                    size="sm"
+                    colorScheme="ghost"
+                    color = "white"
+                    variant="outline"
+                    ml={5}
+                >
+                    Powrót
+                </Button>):""}
+                <Heading color="white"  textAlign="center" flex="1">Na co masz ochotę?</Heading>
+                <Box size="md" mr="4" />
+            </Flex>
+
+            <Flex justifyContent="center"  >
+                <SimpleGrid spacing={10} justifyContent="center" mb="10" >
                     <Box sx={FirstBox}>
                         <Flex justifyContent="center">
                             <Image
@@ -104,19 +122,11 @@ export default function RecipesDetail() {
                             {descriptionParagraphs.map((paragraph, index) => (
                                 <Text key={index}>{paragraph}</Text>
                             ))}
-                            <Button
-                                leftIcon={<FaArrowLeft/>}
-                                onClick={handleDetailsClick}
-                                size="sm"
-                                colorScheme="ghost"
-                                variant="outline"
-                            >
-                                Powrót
-                            </Button>
                         </VStack>
                     </Box>
                 </SimpleGrid>
             </Flex>
+            </Box>
 
         </div>
     );

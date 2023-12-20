@@ -1,26 +1,37 @@
 import React, {useEffect, useState} from 'react'
-import {Box, Container, SimpleGrid, Text, Heading, IconButton, Flex, Icon} from '@chakra-ui/react'
+import {
+  Box,
+  Container,
+  SimpleGrid,
+  Text,
+  Heading,
+  IconButton,
+  Flex,
+  Icon,
+  Modal,
+  ModalOverlay,
+  ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, Button, ModalFooter
+} from '@chakra-ui/react'
 import {
   FaPlus,
   FaMinus, FaInfoCircle
 } from 'react-icons/fa'
-import {BsCupHot, BsQuestion} from "react-icons/bs";
+import {BsCupHot} from "react-icons/bs";
 import { pl } from 'date-fns/locale';
-import {GiSmallFire, GiWaterBottle, GiWaterGallon} from "react-icons/gi";
-import {CiCoffeeCup, CiGlass} from "react-icons/ci";
+import {GiWaterBottle, GiWaterGallon} from "react-icons/gi";
+import {CiCoffeeCup} from "react-icons/ci";
 import { SlCup } from "react-icons/sl";
 import { BsCupStraw } from "react-icons/bs";
-import {getUserWeight, getWater, getWaterToday, handleWater} from "../util/APIUtils";
+import {getWater, handleWater} from "../util/APIUtils";
 import {format, subDays, isAfter, addDays, startOfWeek, isSameDay} from 'date-fns';
 import { useToast } from '@chakra-ui/react';
+
 import {
   BarChart,
   Bar,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   Legend,
   ResponsiveContainer,
   ReferenceLine
@@ -28,8 +39,8 @@ import {
 export default function Water() {
   const [waterVolume, setWaterVolume] = useState(0);
   const [waterData, setWaterData] = useState([]);
-  const [waterToday, setWaterToday] = useState({});
   const [showInfo, setShowInfo] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const setNewWater = (volume) => {
     const newWaterVolume = waterVolume + volume;
@@ -113,7 +124,7 @@ export default function Water() {
 
     return (
         <Flex direction="column" alignItems="center" p="4" borderRadius="md">
-          <SimpleGrid columns={3} spacing={3} width="100%" mb={3}>
+          <SimpleGrid columns={3} spacing={3} width="100%" mb={3} >
             {goalAchievement.slice(0, 3).map((achieved, index) => (
                 <Box textAlign="center" key={daysOfWeek[index]}>
                   <Text fontSize ={{ base: 'xx-small', md: 'lg' }}>{daysOfWeek[index]}</Text>
@@ -151,18 +162,8 @@ export default function Water() {
       position: "top-right"
     });
   };
-  const fetchWaterToday = () => {
-    getWaterToday()
-        .then(response => {
-          setWaterToday(response.data);
-        })
-        .catch(error => {
-          console.error('Błąd podczas pobierania danych użytkownika', error);
-        });
-  };
 
   useEffect(() => {
-    fetchWaterToday();
     fetchWater();
   }, []);
   const FirstBox = {
@@ -194,7 +195,7 @@ export default function Water() {
   return (
     <div className="App">
       <Heading color={"white"}>Uzupełnij nawodnienie:</Heading>
-      <Container maxWidth={"3x1"} py="10px">
+      <Container maxWidth={"3x1"} py="10px" ml ={{ base: '5', md: '0' }}>
         <SimpleGrid spacing={10} minChildWidth="250px">
           <Box sx={FirstBox}>
             <Flex justifyContent="center">
@@ -268,7 +269,7 @@ export default function Water() {
         </SimpleGrid>
       </Container>
 
-      <Container maxWidth={"3x1"} py="10px">
+      <Container maxWidth={"3x1"} py="10px" ml ={{ base: '5', md: '0' }}>
         <SimpleGrid spacing={10} minChildWidth="250px">
           <Box sx={FirstBox}>
             <Flex justifyContent="center">
@@ -342,7 +343,7 @@ export default function Water() {
         </SimpleGrid>
 
       </Container>
-      <Container maxWidth={"3x1"} py="10px" mb={7}>
+      <Container maxWidth={"3x1"} py="10px" mb={7} ml ={{ base: '5', md: '0' }}>
         <SimpleGrid spacing={10} minChildWidth="250px">
           <Box sx={PlotBox}>
             <ResponsiveContainer width="100%" height="100%">
@@ -364,7 +365,7 @@ export default function Water() {
                   ml={3}
                   aria-label="Show Info"
                   icon={<FaInfoCircle />}
-                  onClick={() => setShowInfo(!showInfo)}
+                  onClick={onOpen}
                   size="sm"
                   colorScheme="blue"
               />
@@ -381,7 +382,23 @@ export default function Water() {
           </Box>
       </SimpleGrid>
     </Container>
+      <Modal isOpen={isOpen} onClose={onClose} isCentered size={"2xl"}>
+        <ModalOverlay />
+        <ModalContent >
+          <ModalHeader>Dzienne nawodnienie</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text>Względem przyjętego zalecanego dziennego nawodnienia większego niż 2 litry.</Text>
+            <Text>Reprezentowany wykres przedstawia zależność całkowitego nawodnienia z dnia [ml] od dnia. Typ wykresu ma charakter poglądowy.</Text>
+            <br></br>
+            <Text>Pamiętaj o regularnym spożywaniu wody i dbaniu o swoje zdrowie.</Text>
+            <Text>Nie trać dobrej passy!</Text>
+          </ModalBody>
+          <ModalFooter>
 
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   )
 }

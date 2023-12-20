@@ -1,8 +1,6 @@
 CREATE TABLE users
 (
     id            SERIAL PRIMARY KEY,
-    provider      varchar(255),
-    provider_id   varchar(255),
     first_name    VARCHAR(255) NOT NULL,
     last_name     VARCHAR(255) NOT NULL,
     birth_date    DATE,
@@ -10,6 +8,7 @@ CREATE TABLE users
     sex           VARCHAR(10),
     target_weight FLOAT,
     goal          VARCHAR(255),
+    is_premium    BOOLEAN DEFAULT FALSE,
     email         VARCHAR(255) NOT NULL UNIQUE,
     password      VARCHAR(255) NOT NULL
 );

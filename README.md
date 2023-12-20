@@ -52,7 +52,7 @@ Czy zastanawiałeś się kiedyś, co dokładnie zawiera się w twoim codziennym 
 
 ### Uruchomienie webowe
 ```bash
-   http://http://dietdetective.live/
+   http://dietdetective.live/
 ```
 ## Licencja
 Rozpowszechniane na podstawie Licencji MIT. Zobacz [MIT LICENSE](https://github.com/sebo21cc21/IB_DietDetective/blob/main/LICENSE) po więcej informacji.

@@ -12,10 +12,6 @@ public class MealService {
 
     private final MealRepository mealRepository;
 
-    public List<Meal> getAllMeals() {
-        return mealRepository.findAll();
-    }
-
     public Meal getMealById(int id) throws EntityNotFoundException {
         return mealRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }

@@ -32,18 +32,4 @@ public class WaterIntake {
     @JsonIgnore
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @Override
-
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        WaterIntake that = (WaterIntake) o;
-        return id != null && Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

@@ -10,13 +10,12 @@ import java.util.Optional;
 public interface EatenMealRepository extends JpaRepository<EatenMeal, Integer> {
     List<EatenMeal> findAllByUserEmailAndDate(String email, Date date);
 
-    List<EatenMeal> findAllByUserEmailAndDateAfter(String email, Date date);
+    Optional<EatenMeal> findByMealIdAndUserIdAndDate(Integer mealId, Integer userId, Date date);
 
-    Optional<EatenMeal> findAllByMealIdAndUserId(Integer mealId, Integer userId);
-
-    @Query("SELECT NEW com.example.dietdetectivespring.eatenmeals.CaloriesPerDayDto(SUM(em.meal.calories), em.date) " +
+    @Query("SELECT NEW com.example.dietdetectivespring.eatenmeals.CaloriesPerDayDto(CAST(SUM(em.meal.calories * (CAST(em.eatenWeight AS double) / 100.0)) AS long), em.date) " +
             "FROM EatenMeal em " +
             "WHERE em.user.email = :email AND em.date > :date " +
             "GROUP BY em.date")
     List<CaloriesPerDayDto> calculateCaloriesPerDayAfterDateByUserEmail(String email, Date date);
+
 }

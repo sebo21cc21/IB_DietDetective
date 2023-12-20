@@ -1,8 +1,8 @@
 package com.example.dietdetectivespring.auth;
 
 
-import com.example.dietdetectivespring.security.JwtService;
-import com.example.dietdetectivespring.security.UserPrincipal;
+import com.example.dietdetectivespring.config.security.JwtService;
+import com.example.dietdetectivespring.user.security.UserPrincipal;
 import com.example.dietdetectivespring.user.AuthProvider;
 import com.example.dietdetectivespring.user.User;
 import com.example.dietdetectivespring.user.UserRepository;
@@ -33,7 +33,6 @@ public class AuthenticationService {
                 .lastName(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .provider(AuthProvider.local)
                 .build();
         userRepository.save(user);
         UserPrincipal userPrincipal = UserPrincipal.create(user);
@@ -67,10 +66,6 @@ public class AuthenticationService {
                 .firstName(user.getFirstName())
                 .isInterviewCompleted(user.getBirthDate() != null)
                 .build();
-    }
-
-    public User getUserInfo(String email) {
-        return userRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new);
     }
 
     public AuthenticationResponse validate(String token) {

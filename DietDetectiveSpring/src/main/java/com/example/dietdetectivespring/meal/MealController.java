@@ -15,11 +15,6 @@ public class MealController {
 
     private final MealService mealService;
 
-    @GetMapping
-    public ResponseEntity<List<Meal>> getMeals() {
-        return new ResponseEntity<>(mealService.getAllMeals(), HttpStatus.OK);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<Meal> getMeal(@PathVariable("id") int id) {
         try {
