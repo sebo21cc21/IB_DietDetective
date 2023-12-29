@@ -4,7 +4,6 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Incubating;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,10 +17,8 @@ import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 public class MealServiceTest {
-
     @Mock
     private MealRepository mealRepository;
-
     @InjectMocks
     private MealService mealService;
 

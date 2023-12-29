@@ -16,6 +16,7 @@ import Water from "./pages/Water";
 import NotFound from "./components/NotFound";
 import RecipesDetail from "./pages/RecipesDetail";
 import OpenAIForm from "./pages/Assistant";
+import Success from "./components/Success";
 
 
 const router = createBrowserRouter(
@@ -29,9 +30,10 @@ const router = createBrowserRouter(
             <Route path="interview" element={<PrivateRoute><Interview/></PrivateRoute>} />
             <Route path="account" element={<PrivateRoute><Account/></PrivateRoute>} />
             <Route path="water" element={<PrivateRoute><Water/></PrivateRoute>} />
-            <Route path="login" element={<Login />} />
             <Route path="chat" element={<PrivateRoute><OpenAIForm/></PrivateRoute>} />
+            <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
+            <Route path="success" element={<PrivateRoute><Success/></PrivateRoute>} />
             <Route path="*" element={<NotFound />} />
             <Route path="/roboto.txt"  />
         </Route>

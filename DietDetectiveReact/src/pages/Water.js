@@ -10,7 +10,7 @@ import {
   Icon,
   Modal,
   ModalOverlay,
-  ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, Button, ModalFooter
+  ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, ModalFooter
 } from '@chakra-ui/react'
 import {
   FaPlus,

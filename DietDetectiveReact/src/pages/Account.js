@@ -8,7 +8,7 @@ import {
 } from '@chakra-ui/react'
 import { useToast } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react'
-import { Box, SimpleGrid, Text, Image } from '@chakra-ui/react';
+import { Box, SimpleGrid, Text } from '@chakra-ui/react';
 import {
   getCurrentUser,
   getUserSummary,
@@ -168,9 +168,10 @@ export default function Account() {
 
         <Container as="section" maxWidth={"2x1"} py="20px" mt={3}>
           <SimpleGrid spacing={10} minChildWidth="300px">
-            <Box sx={SecondBox} bgImage="url('img/account2.png')" backgroundSize='cover'>
-
-              <Text fontSize={{ base: "md", md: "xx-large" }} fontWeight="bold">{user ? `${user.firstName} ${user.lastName}` : ''}</Text>
+            <Box sx={SecondBox} bgImage="url('img/account2.png')" backgroundSize='cover' >
+              <Flex direction={{ base: "row", md: "row" }} justifyContent="center">
+              <Text fontSize= "xx-large" fontWeight="bold">{user ? `${user.firstName} ${user.lastName}` : ''}</Text>
+              </Flex>
             </Box>
             <Box sx={ThirdBox} width={["100%", "100%", "100%","100%",  "210%","210%"]} bgGradient="linear(to-r, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6))">
               <Text fontSize={["md", "lg", "xl"]} fontWeight="bold">Informator o profilu</Text>
@@ -234,7 +235,7 @@ export default function Account() {
                 </Modal>
               </Flex>
               <Flex justifyContent={"center"} mt={5} >
-                <Button size={["xs", "xs", "xs", "md", "md", "lg"]} mr={3} colorScheme="messenger" onClick={() => setIsModalOpen(true)}>Zmień wagę</Button>
+                <Button size={["xs", "xs", "xs", "md", "md", "lg"]} mr={3} colorScheme="blue" onClick={() => setIsModalOpen(true)}>Zmień wagę</Button>
                 <Button size={["xs", "xs", "xs", "md", "md", "lg"]} colorScheme="teal" onClick={() => setIsTargetModalOpen(true)}>Zmień wagę docelową</Button>
               </Flex>
               </Box>

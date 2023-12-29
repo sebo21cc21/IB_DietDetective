@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Container, SimpleGrid, Text, Heading, IconButton, Flex, Button,
+    Box, SimpleGrid, Text, Heading, Flex, Button,
     Table,
     Thead,
     Tbody,
@@ -8,7 +8,7 @@ import {
     Th,
     Td,
     VStack,
-    Image, useBreakpointValue
+    Image, useBreakpointValue, Container
 } from '@chakra-ui/react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { getMeal } from '../util/APIUtils';
@@ -74,9 +74,10 @@ export default function RecipesDetail() {
     };
     return (
         <div className="App">
-            <Box >
+            <Box>
             <Flex justifyContent="space-between" align="center" mb={2} mr={10}>
-                {!isMobile ? (<Button
+                {!isMobile ? (<>
+                    <Button
                     leftIcon={<FaArrowLeft/>}
                     onClick={handleDetailsClick}
                     size="sm"
@@ -86,12 +87,14 @@ export default function RecipesDetail() {
                     ml={5}
                 >
                     Powrót
-                </Button>):""}
+                </Button>
                 <Heading color="white"  textAlign="center" flex="1">Na co masz ochotę?</Heading>
                 <Box size="md" mr="4" />
+                </>):""}
             </Flex>
-
-            <Flex justifyContent="center"  >
+            </Box>
+            <Container >
+            <Flex justifyContent="center"  width={{ base: '130%', md: '100%' }}>
                 <SimpleGrid spacing={10} justifyContent="center" mb="10" >
                     <Box sx={FirstBox}>
                         <Flex justifyContent="center">
@@ -126,8 +129,7 @@ export default function RecipesDetail() {
                     </Box>
                 </SimpleGrid>
             </Flex>
-            </Box>
-
+            </Container>
         </div>
     );
 }

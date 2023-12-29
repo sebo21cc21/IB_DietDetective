@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Input, Button, Box, Text, VStack } from '@chakra-ui/react';
+import { Input, Button, Box, Text, VStack, Spinner } from '@chakra-ui/react';
 import axios from 'axios';
 import { getCurrentUser, getEatenSummary } from "../util/APIUtils";
 
@@ -9,6 +9,7 @@ const ChatComponent = () => {
     const [eatenMealsSummary, setEatenMealsSummary] = useState([]);
     const [user, setUser] = useState(null);
     const [initialValue, setInitialValue] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleInputChange = (event) => {
         setInputValue(event.target.value);
@@ -42,17 +43,28 @@ const ChatComponent = () => {
             setInitialValue(template);
         }
     };
-
     useEffect(() => {
         fetchUserData();
         fetchEatenMealSummary();
     }, []);
 
     const handleSubmit = async () => {
+        setIsLoading(true);
+        fetchUserData();
+        fetchEatenMealSummary();
         try {
-            const result = await axios.post('https://api.openai.com/v1/completions', {
-                model: 'text-davinci-003',
-                prompt: initialValue + inputValue,
+            const result = await axios.post('https://api.openai.com/v1/chat/completions', {
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    {
+                        'role': "system",
+                        'content': initialValue
+                    },
+                    {
+                        'role': "user",
+                        'content': inputValue
+                    }
+                ],
                 temperature: 1,
                 max_tokens: 600,
                 top_p: 1,
@@ -61,16 +73,17 @@ const ChatComponent = () => {
             }, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer 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`
+                    'Authorization': `Bearer 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`
                 },
                 responseType: 'json'
             });
-
             if (result.data.choices && result.data.choices.length > 0) {
-                setResponse(result.data.choices[0].text);
+                setResponse(result.data.choices[0].message.content);
             }
         } catch (error) {
             console.error('Error fetching response:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -83,12 +96,12 @@ const ChatComponent = () => {
                 onChange={handleInputChange}
                 color="white"
             />
-            <Button colorScheme="blue" onClick={handleSubmit}>
-                Wyślij wiadomość
+            <Button colorScheme="blue" onClick={handleSubmit} disabled={isLoading}>
+                {isLoading ? <Spinner size="sm" /> : 'Wyślij wiadomość'}
             </Button>
             {response && (
                 <Box>
-                    <Text fontSize="lg" color="white" textAlign="justify">{response} </Text>
+                    <Text fontSize="lg" color="white" textAlign="justify" mb={{ base: '20', md: '10' }}>{response} </Text>
                 </Box>
             )}
         </VStack>
@@ -96,3 +109,4 @@ const ChatComponent = () => {
 };
 
 export default ChatComponent;
+

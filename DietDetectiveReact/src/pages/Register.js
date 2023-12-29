@@ -94,7 +94,7 @@ export default function Register() {
                 });
 
                 navigate('/interview');
-                console.log('Registration successful:', responseData);
+                console.log('Registration successful:');
             } catch (error) {
                 console.error('Registration failed:', error);
                 const errorMessage = 'Rejestracja niepoprawna, użytkownik istnieje';

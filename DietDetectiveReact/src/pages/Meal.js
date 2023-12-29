@@ -14,7 +14,7 @@ import {
   Th,
   Td,
   Button,
-  Select, IconButton, useBreakpointValue, Radio, RadioGroup,
+  IconButton, useBreakpointValue, Radio, RadioGroup,
 } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import {

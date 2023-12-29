@@ -30,7 +30,7 @@ export default function Login() {
                     <HStack spacing="20px">
                         <FaUser size={20}/>
                         <Text>Witaj, {auth.currentUser.firstName}!</Text>
-                        <Button colorScheme="messenger" onClick={logout}>Wyloguj</Button>
+                        <Button colorScheme="blue" onClick={logout}>Wyloguj</Button>
                     </HStack>
                 </Flex>
             )
@@ -39,7 +39,7 @@ export default function Login() {
                     <Spacer/>
                     <HStack spacing="20px">
                         <Link to="/login">
-                            <Button colorScheme="messenger">Zaloguj</Button>
+                            <Button colorScheme="blue">Zaloguj</Button>
                         </Link>
                     </HStack>
                 </Flex>

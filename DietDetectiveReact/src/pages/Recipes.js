@@ -1,17 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {Box, Container, SimpleGrid, Text, Heading, IconButton, Flex, Button} from '@chakra-ui/react';
 import {
-  FaPizzaSlice,
-  FaHamburger,
-  FaIceCream,
+
   FaInfoCircle,
-  FaHotdog,
-  FaApple,
-  FaCookie,
   FaArrowRight,
   FaArrowLeft,
 } from 'react-icons/fa';
-import {getMeal, getMeals, getUserSummary} from '../util/APIUtils';
+import {getMeal, getMeals} from '../util/APIUtils';
 import {useNavigate} from "react-router-dom";
 
 export default function Recipes() {
@@ -102,9 +97,8 @@ export default function Recipes() {
                           leftIcon={<FaInfoCircle />}
                           onClick={() => handleDetailsClick(meal.id)}
                           size="sm"
-                          colorScheme="whiteAlpha"
-                          variant="outline"
-                          width="100%" // make the button fill the container width
+                          colorScheme="blue"
+                          width="100%"
                       >
                         Przygotowanie
                       </Button>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Flex, Heading } from "@chakra-ui/react";
 
-export default function Recipes() {
+export default function NotFound() {
   return (
       <div className="App">
         <Flex

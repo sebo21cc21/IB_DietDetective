@@ -8,7 +8,7 @@ import {
     Text,
     Modal,
     useBreakpointValue,
-    useToast, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Input, ModalFooter, // Import useToast hook
+    useToast, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
 } from '@chakra-ui/react';
 import { StarIcon } from '@chakra-ui/icons';
 import { getCurrentUser, handlePremium } from '../util/APIUtils';
@@ -22,9 +22,9 @@ export default function Stripe(props) {
     );
     const [loading, setLoading] = useState(false);
     const [user, setUser] = useState();
-    const [showInvalidEmailToast, setShowInvalidEmailToast] = useState(false); // Track if the toast should be shown
+    const [showInvalidEmailToast, setShowInvalidEmailToast] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const toast = useToast(); // Initialize the useToast hook
+    const toast = useToast();
 
     async function handleCheckout() {
         setLoading(true);
@@ -34,10 +34,9 @@ export default function Stripe(props) {
             premium: false,
         });
         const timeoutId = setTimeout(() => {
-            // Set a timeout for 10 seconds
             setLoading(false);
             setShowInvalidEmailToast(true);
-        }, 10000); // 10 seconds
+        }, 8000); //
 
         const { error } = await stripe.redirectToCheckout({
             lineItems: [
@@ -47,7 +46,7 @@ export default function Stripe(props) {
                 },
             ],
             mode: 'payment',
-            successUrl: `${window.location.origin}/account`,
+            successUrl: `${window.location.origin}/success`,
             cancelUrl: `${window.location.origin}/404`,
             customerEmail: `${user.email}`,
         });
@@ -71,7 +70,7 @@ export default function Stripe(props) {
     useEffect(() => {
         fetchUserData();
         const url = new URL(window.location.href);
-        const isPaymentSuccess = url.pathname === '/account';
+        const isPaymentSuccess = url.pathname === '/success';
         if (isPaymentSuccess) {
             handlePremium({ premium: true })
                 .then(() => {
@@ -80,22 +79,7 @@ export default function Stripe(props) {
                 .catch((error) => {
                     console.error('Failed to update premium status:', error);
                 });
-        }
-    }, []);
-
-    useEffect(() => {
-        const url = new URL(window.location.href);
-        const isPaymentSuccess = url.pathname === '/account';
-        if (isPaymentSuccess) {
-            handlePremium({ premium: true })
-                .then(() => {
-                    console.log('Premium status updated to true.');
-                    fetchUserData();
-                })
-                .catch((error) => {
-                    console.error('Failed to update premium status:', error);
-                });
-        } else {
+        }   else {
             fetchUserData();
         }
     }, []);

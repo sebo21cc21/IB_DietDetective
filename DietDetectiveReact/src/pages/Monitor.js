@@ -6,16 +6,14 @@ import {
   CircularProgress,
   CircularProgressLabel,
   Flex,
-  Image,
   Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, Input, ModalFooter, IconButton
 } from '@chakra-ui/react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import React, {useEffect, useState} from 'react'
-import {getCurrentUser, getUserSummary, getUserWeight, handleGoal} from "../util/APIUtils";
+import {getCurrentUser, getUserSummary, getUserWeight} from "../util/APIUtils";
 import {useNavigate} from "react-router-dom";
 import {ACCESS_TOKEN, API_BASE_URL} from "../constans";
 import axios from "axios";
-import {determineGoal} from "./Account";
 import {FaInfoCircle} from "react-icons/fa";
 export function calculatePercentWeight(weight, estimatedWeight) {
   let percentWeight = 100 -(weight / estimatedWeight) * 100;
@@ -287,7 +285,7 @@ export default function Monitor() {
             <Modal isOpen={isWeightModalOpen} onClose={() => setIsWeightModalOpen(false)}>
               <ModalOverlay />
               <ModalContent>
-                <ModalHeader>Proszę uzupełniej dzisiejszą wagę</ModalHeader>
+                <ModalHeader>Proszę uzupełnij dzisiejszą wagę</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
                   <Input
