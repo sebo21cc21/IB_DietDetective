@@ -59,5 +59,4 @@ Rozpowszechniane na podstawie Licencji MIT. Zobacz [MIT LICENSE](https://github.
 ## Kontakt
 - Link do repozytorium kodu projektu: https://github.com/sebo21cc21/IB_DietDetective
 - Adres e-mail: 261662@student.pwr.edu.pl
-- Numer telefonu: 694-250-108
 #### © 2023 DietDetective | Powered by Full-Stack Developer Sebastian Bednarski
